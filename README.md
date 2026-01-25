@@ -250,6 +250,58 @@ The schema is defined in `rule-schema.json` and validates:
 }
 ```
 
+## Local Testing
+
+Before pushing changes, test the package locally to ensure rules generate and copy correctly.
+
+### 1. Validate rule files
+
+```bash
+npm run validate:rules
+```
+
+### 2. Test rule generation
+
+```bash
+npm run build
+```
+
+This generates `.cursor/` and `.claude/` folders locally. Check that your rules appear correctly.
+
+### 3. Test installation in another project
+
+Create a test project and install from your local path:
+
+```bash
+# Create test directory
+mkdir /tmp/test-project && cd /tmp/test-project
+npm init -y
+
+# Install from local path
+npm install /path/to/core-llm-rules
+
+# Verify folders were created
+ls -la .cursor/rules/
+ls -la .claude/
+```
+
+### 4. Test installation from a branch
+
+Push your changes to a feature branch, then test:
+
+```bash
+# In your test project
+npm install github:RehabPath/core-llm-rules#your-branch-name
+```
+
+### 5. Clean up generated files
+
+After testing locally, remove generated files (they're gitignored):
+
+```bash
+rm -rf .cursor .claude
+```
+
 ## CI/CD
 
 ### Rule Validation (GitHub Action)
