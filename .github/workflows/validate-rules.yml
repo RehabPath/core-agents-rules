@@ -1,0 +1,35 @@
+name: Validate Rules
+
+on:
+  push:
+    paths:
+      - '.rulesync/rules/**'
+      - 'rule-schema.json'
+      - 'bin/validate-rules.js'
+  pull_request:
+    paths:
+      - '.rulesync/rules/**'
+      - 'rule-schema.json'
+      - 'bin/validate-rules.js'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate rule files
+        run: npm run validate:rules
+
+      - name: Generate rules (verify rules compile)
+        run: npm run build
