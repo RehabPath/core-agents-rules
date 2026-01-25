@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/nicasio/core-llm-rules/rule-schema.json",
+  "title": "Rulesync Rule File Schema",
+  "description": "Schema for validating rulesync rule file frontmatter",
+  "type": "object",
+  "required": ["targets", "description"],
+  "properties": {
+    "root": {
+      "type": "boolean",
+      "description": "True for overview files (generates CLAUDE.md), false for detailed rules",
+      "default": false
+    },
+    "localRoot": {
+      "type": "boolean",
+      "description": "True for project-specific local rules",
+      "default": false
+    },
+    "targets": {
+      "type": "array",
+      "description": "Tools to generate rules for",
+      "items": {
+        "type": "string",
+        "enum": [
+          "*",
+          "cursor",
+          "claudecode",
+          "copilot",
+          "cline",
+          "geminicli",
+          "opencode",
+          "codexcli",
+          "agentsmd",
+          "kilocode",
+          "roocode",
+          "qwencode",
+          "kiro",
+          "antigravity",
+          "junie",
+          "augmentcode",
+          "windsurf",
+          "warp",
+          "replit",
+          "zed"
+        ]
+      },
+      "minItems": 1
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of what this rule does",
+      "minLength": 1
+    },
+    "globs": {
+      "type": "array",
+      "description": "File patterns when this rule applies",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cursor": {
+      "type": "object",
+      "description": "Cursor-specific settings",
+      "properties": {
+        "alwaysApply": {
+          "type": "boolean",
+          "description": "True = always active, false = only when globs match"
+        },
+        "description": {
+          "type": "string",
+          "description": "Cursor-specific description"
+        },
+        "globs": {
+          "type": "array",
+          "description": "Cursor-specific file patterns",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "claudecode": {
+      "type": "object",
+      "description": "Claude Code-specific settings",
+      "properties": {
+        "model": {
+          "type": "string",
+          "enum": ["opus", "sonnet", "haiku", "inherit"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "agentsmd": {
+      "type": "object",
+      "description": "AGENTS.md-specific settings",
+      "properties": {
+        "subprojectPath": {
+          "type": "string",
+          "description": "Path to subproject for nested AGENTS.md files"
+        }
+      },
+      "additionalProperties": true
+    },
+    "antigravity": {
+      "type": "object",
+      "description": "Google Antigravity-specific settings",
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "enum": ["always_on", "glob", "manual", "model_decision"]
+        },
+        "globs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

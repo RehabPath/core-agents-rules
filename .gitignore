@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Generated rule files (built during install)
+.cursor/
+.claude/
+
+# Lock files (consumer projects will have their own)
+package-lock.json
+
+# Editor
+.idea/
+*.swp
+*.swo
