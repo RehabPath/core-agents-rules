@@ -10,14 +10,35 @@ Shared AI assistant rules for Cursor and Claude Code. When installed, this packa
 
 Install directly from GitHub:
 
+### npm
+
 ```bash
-npm install github:nicasio/core-llm-rules
+npm install github:RehabPath/core-llm-rules
 ```
 
-Or with a specific branch/tag:
+### yarn
 
 ```bash
-npm install github:nicasio/core-llm-rules#main
+yarn add RehabPath/core-llm-rules
+```
+
+### pnpm
+
+```bash
+pnpm add github:RehabPath/core-llm-rules
+```
+
+### With a specific branch/tag
+
+```bash
+# npm
+npm install github:RehabPath/core-llm-rules#main
+
+# yarn
+yarn add RehabPath/core-llm-rules#main
+
+# pnpm
+pnpm add github:RehabPath/core-llm-rules#main
 ```
 
 On install, the package will automatically:
@@ -183,16 +204,17 @@ your-project/
 
 ## Updating
 
-To update to the latest version from GitHub:
+To update to the latest version, reinstall the package:
 
 ```bash
-npm update core-llm-rules
-```
+# npm
+npm install github:RehabPath/core-llm-rules
 
-Or reinstall:
+# yarn
+yarn add RehabPath/core-llm-rules
 
-```bash
-npm install github:nicasio/core-llm-rules
+# pnpm
+pnpm add github:RehabPath/core-llm-rules
 ```
 
 ## Validation
