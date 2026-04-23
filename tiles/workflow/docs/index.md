@@ -9,3 +9,8 @@ This tile contains rules for workflow, review, and process rules.
 - `bug-workflow`
 - `single-ticket-creation`
 - `shape-up-to-linear-conversion`
+
+## Included Skills
+
+- `create-github-pr`
+- `code-reviewer`

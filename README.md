@@ -8,7 +8,7 @@ This repository is the source of truth for shared Tessl rules in the `recovery` 
 - `tiles/ui`: frontend-only rules (do not install in backend-only repos).
 - `tiles/testing`: test-writing and test-structure guidance.
 - `tiles/architecture`: layering and architectural boundaries.
-- `tiles/workflow`: PR, ticket, review, and process rules.
+- `tiles/workflow`: PR, ticket, review, and process rules plus reusable workflow skills.
 - `tessl.json`: local tile dependencies wired with `file:` sources.
 
 ## Rule placement policy
@@ -85,6 +85,72 @@ Then confirm dependencies resolve:
 ```bash
 tessl install
 ```
+
+## Evaluate rule usefulness across other projects
+
+Use Tessl evals to measure whether these rules improve agent outcomes on real tasks from other repositories.
+
+You can run Tessl directly or use repository scripts:
+
+```bash
+pnpm run scenario:generate -- <args>
+pnpm run scenario:download -- <args>
+pnpm run eval:run -- <args>
+pnpm run eval:view -- <args>
+pnpm run eval:compare -- <args>
+```
+
+### 1) Generate scenarios from a target repository
+
+Use merged PRs or commits from the target project:
+
+```bash
+pnpm run scenario:generate -- RehabPath/<target-repo> --workspace recovery --prs 123,124
+# or
+pnpm run scenario:generate -- RehabPath/<target-repo> --workspace recovery --commits abc123,def456
+```
+
+### 2) Download the generated scenarios
+
+```bash
+pnpm run scenario:download -- --last --output evals/<target-repo>
+```
+
+### 3) Run evals with and without context
+
+Run the same scenario set in two variants so you can compare baseline vs rule-assisted results:
+
+```bash
+pnpm run eval:run -- evals/<target-repo> \
+  --workspace recovery \
+  --agent codex:auto \
+  --variant without-context \
+  --variant with-context \
+  --context-pattern "tiles/**/*.md"
+```
+
+### 4) Review and compare results
+
+```bash
+pnpm run eval:view -- --last
+pnpm run eval:compare -- evals/<target-repo> --workspace recovery --breakdown
+pnpm run eval:list -- --workspace recovery --mine
+```
+
+### 5) Optional: run evals tile-by-tile
+
+For focused tuning of a single tile:
+
+```bash
+pnpm run eval:run -- tiles/style-and-conventions --workspace recovery
+```
+
+### What to optimize for
+
+- Higher pass rates with `with-context` compared to `without-context`.
+- Fewer violations of architecture, style, and testing expectations.
+- No regressions in backend-only projects when the `recovery/ui` tile is not installed.
+- Stable improvements across multiple repositories, not just one.
 
 ## Publish flow
 

@@ -19,5 +19,13 @@
     "shape-up-to-linear-conversion": {
       "rules": "rules/shape-up-to-linear-conversion.md"
     }
+  },
+  "skills": {
+    "create-github-pr": {
+      "path": "skills/create-github-pr/SKILL.md"
+    },
+    "code-reviewer": {
+      "path": "skills/code-reviewer/SKILL.md"
+    }
   }
 }
