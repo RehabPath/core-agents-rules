@@ -1,0 +1,112 @@
+---
+alwaysApply: true
+---
+
+---
+globs: **/utils/checks.util.test.ts
+description: Testing patterns specifically for utility functions and type guards
+---
+
+# Utility Function Testing Patterns
+
+Extends the general [unit-test.mdc](../../.tessl/tiles/recovery/testing/rules/unit-test.mdc) guidelines with specific patterns for utility functions.
+
+## Type Guard Testing Structure
+
+### Comprehensive Coverage Pattern
+
+For type checking functions like `isBlank`, `isString`, etc., use this structure:
+
+```typescript
+describe('functionName', () => {
+  describe('given {condition that should return true}', () => {
+    it('should return true', () => {
+      // Test cases that should pass
+    })
+  })
+
+  describe('given {condition that should return false}', () => {
+    it('should return false', () => {
+      // Test cases that should fail
+    })
+  })
+})
+```
+
+### Example: Complete Type Guard Test
+
+```typescript
+describe('isBlank', () => {
+  describe('given null or undefined values', () => {
+    it('should return true', () => {
+      expect(isBlank(null)).toBe(true)
+      expect(isBlank(undefined)).toBe(true)
+      expect(isBlank()).toBe(true)
+    })
+  })
+
+  describe('given empty strings', () => {
+    it('should return true', () => {
+      expect(isBlank('')).toBe(true)
+      expect(isBlank(' ')).toBe(true)
+      expect(isBlank('\t')).toBe(true)
+    })
+  })
+
+  describe('given non-empty values', () => {
+    it('should return false', () => {
+      expect(isBlank('hello')).toBe(false)
+      expect(isBlank(0)).toBe(false)
+      expect(isBlank(false)).toBe(false)
+    })
+  })
+})
+```
+
+## Test Case Categories
+
+### Required Test Categories for Type Guards
+
+1. **Positive Cases**: Values that should return `true`
+2. **Negative Cases**: Values that should return `false`
+3. **Edge Cases**: Boundary values, special characters
+4. **Type Boundaries**: Different JavaScript types
+
+### Edge Cases to Always Test
+
+- Empty string (`''`)
+- Whitespace strings (`' '`, `'\t'`, `'\n'`)
+- Zero (`0`)
+- False (`false`)
+- Empty arrays (`[]`)
+- Empty objects (`{}`)
+- `NaN`
+- `null` and `undefined`
+
+## Import Organization
+
+Keep imports clean and organized:
+
+```typescript
+// Good - Clean import organization
+import { isNull, isUndefined, isBlank, isString } from './checks'
+
+// Avoid importing unused functions
+```
+
+## Test Data Patterns
+
+### Use Representative Test Data
+
+Choose test data that represents real-world usage:
+
+```typescript
+// Good - Real-world representative data
+expect(isBlank('hello world')).toBe(false)
+expect(isBlank(' trimmed ')).toBe(false)
+
+// Good - Edge cases that matter
+expect(isBlank('\u00A0')).toBe(true) // non-breaking space
+```
+
+This ensures utility functions work correctly in actual application scenarios.

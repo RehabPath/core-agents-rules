@@ -1,0 +1,78 @@
+name: Publish Tessl Tiles
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "tiles/**"
+      - "tessl.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-tiles-main
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      TESSL_API_KEY: ${{ secrets.TESSL_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Tessl API key exists
+        run: |
+          if [ -z "$TESSL_API_KEY" ]; then
+            echo "Missing required secret: TESSL_API_KEY"
+            exit 1
+          fi
+
+      - name: Install Tessl CLI
+        run: curl -fsSL https://get.tessl.io | sh
+
+      - name: Add Tessl CLI to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Determine changed tiles
+        id: changed
+        run: |
+          BEFORE_SHA="${{ github.event.before }}"
+          AFTER_SHA="${{ github.sha }}"
+
+          if [ -z "$BEFORE_SHA" ] || [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            CHANGED_TILES="$(ls -1 tiles)"
+          else
+            CHANGED_TILES="$(
+              git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" -- tiles/ \
+              | awk -F/ '/^tiles\/[^/]+\// { print $2 }' \
+              | sort -u
+            )"
+          fi
+
+          if [ -z "$CHANGED_TILES" ]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          {
+            echo "tiles<<EOF"
+            echo "$CHANGED_TILES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish changed tiles
+        if: steps.changed.outputs.has_changes == 'true'
+        run: |
+          while IFS= read -r tile; do
+            [ -n "$tile" ] || continue
+            echo "Publishing tiles/$tile"
+            tessl tile publish --bump patch "tiles/$tile"
+          done <<< "${{ steps.changed.outputs.tiles }}"

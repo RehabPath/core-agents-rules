@@ -1,0 +1,24 @@
+{
+  "name": "core-llm-rules",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.27.0",
+  "scripts": {
+    "lint": "pnpm lint:tiles && pnpm format:check",
+    "lint:tiles": "tessl tile lint tiles/style-and-conventions && tessl tile lint tiles/ui && tessl tile lint tiles/testing && tessl tile lint tiles/architecture && tessl tile lint tiles/workflow",
+    "format": "prettier --write README.md package.json tessl.json .cursor/mcp.json .github/workflows/*.yml tiles/**/*.md tiles/**/*.json",
+    "format:check": "prettier --check README.md package.json tessl.json .cursor/mcp.json .github/workflows/*.yml tiles/**/*.md tiles/**/*.json",
+    "pre-commit": "lint-staged",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{md,json,yaml,yml}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4"
+  }
+}

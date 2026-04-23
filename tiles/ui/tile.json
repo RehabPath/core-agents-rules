@@ -1,0 +1,26 @@
+{
+  "name": "recovery/ui",
+  "version": "0.1.0",
+  "summary": "UI and frontend specific rules",
+  "private": true,
+  "rules": {
+    "html-accessibility": {
+      "rules": "rules/html-accessibility.md"
+    },
+    "icon-components": {
+      "rules": "rules/icon-components.md"
+    },
+    "icon-svg-guidelines": {
+      "rules": "rules/icon-svg-guidelines.md"
+    },
+    "design-conventions": {
+      "rules": "rules/design-conventions.md"
+    },
+    "animation-guidelines": {
+      "rules": "rules/animation-guidelines.md"
+    },
+    "seo-guidelines": {
+      "rules": "rules/seo-guidelines.md"
+    }
+  }
+}

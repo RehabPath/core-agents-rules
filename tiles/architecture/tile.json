@@ -1,0 +1,23 @@
+{
+  "name": "recovery/architecture",
+  "version": "0.1.0",
+  "summary": "Architecture and layering guidance",
+  "private": true,
+  "rules": {
+    "domain-vs-application-layer": {
+      "rules": "rules/domain-vs-application-layer.md"
+    },
+    "api-design": {
+      "rules": "rules/api-design.md"
+    },
+    "atomic-design-component-creation": {
+      "rules": "rules/atomic-design-component-creation.md"
+    },
+    "barrel-files": {
+      "rules": "rules/barrel-files.md"
+    },
+    "dependency-placement": {
+      "rules": "rules/dependency-placement.md"
+    }
+  }
+}

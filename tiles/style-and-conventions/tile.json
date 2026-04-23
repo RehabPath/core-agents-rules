@@ -1,0 +1,26 @@
+{
+  "name": "recovery/style-and-conventions",
+  "version": "0.1.0",
+  "summary": "General coding style and conventions",
+  "private": true,
+  "rules": {
+    "js-style-guide": {
+      "rules": "rules/js-style-guide.md"
+    },
+    "logging-guidelines": {
+      "rules": "rules/logging-guidelines.md"
+    },
+    "immutability-objects": {
+      "rules": "rules/immutability-objects.md"
+    },
+    "environment-variables": {
+      "rules": "rules/environment-variables.md"
+    },
+    "use-utility-checks": {
+      "rules": "rules/use-utility-checks.md"
+    },
+    "utility-checks-functions": {
+      "rules": "rules/utility-checks-functions.md"
+    }
+  }
+}

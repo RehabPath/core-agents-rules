@@ -1,0 +1,23 @@
+{
+  "name": "recovery/workflow",
+  "version": "0.1.0",
+  "summary": "Workflow, review, and process rules",
+  "private": true,
+  "rules": {
+    "github-pr-creation": {
+      "rules": "rules/github-pr-creation.md"
+    },
+    "code-review": {
+      "rules": "rules/code-review.md"
+    },
+    "bug-workflow": {
+      "rules": "rules/bug-workflow.md"
+    },
+    "single-ticket-creation": {
+      "rules": "rules/single-ticket-creation.md"
+    },
+    "shape-up-to-linear-conversion": {
+      "rules": "rules/shape-up-to-linear-conversion.md"
+    }
+  }
+}

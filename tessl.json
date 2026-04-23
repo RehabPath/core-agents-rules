@@ -1,0 +1,26 @@
+{
+  "name": "core-llm-rules",
+  "mode": "vendored",
+  "dependencies": {
+    "recovery/style-and-conventions": {
+      "version": "0.1.0",
+      "source": "file:./tiles/style-and-conventions"
+    },
+    "recovery/ui": {
+      "version": "0.1.0",
+      "source": "file:./tiles/ui"
+    },
+    "recovery/testing": {
+      "version": "0.1.0",
+      "source": "file:./tiles/testing"
+    },
+    "recovery/architecture": {
+      "version": "0.1.0",
+      "source": "file:./tiles/architecture"
+    },
+    "recovery/workflow": {
+      "version": "0.1.0",
+      "source": "file:./tiles/workflow"
+    }
+  }
+}

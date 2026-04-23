@@ -1,0 +1,58 @@
+name: Close Stale PRs
+on:
+  schedule:
+    # Run daily at 12:00 UTC
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+    # Allow manual triggering
+
+permissions:
+  actions: write
+  contents: write # only for delete-branch option
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v10
+        with:
+          # Only process pull requests (disable issues completely)
+          days-before-issue-stale: -1 # Disable issue processing
+          days-before-issue-close: -1 # Disable issue processing
+          days-before-pr-stale: 23 # ~1 month minus 1 week grace period
+          days-before-pr-close: 7 # 1 week after being marked stale
+
+          # Messages for PRs
+          stale-pr-message: >
+            This pull request has been automatically marked as stale because it has not had
+            recent activity. It will be closed in 7 days if no further activity occurs.
+
+            To prevent this PR from being marked as stale in the future, you can add one of these labels:
+            - `work-in-progress` - For PRs still being actively developed
+            - `blocked` - For PRs waiting on external dependencies
+
+            Thank you for your contributions.
+
+          close-pr-message: >
+            This pull request was automatically closed because it has been stale for 7 days
+            with no activity after being marked as stale.
+
+          # Labels
+          stale-pr-label: "stale"
+
+          # Exempt labels - PRs with these labels won't be marked as stale
+          exempt-pr-labels: "work-in-progress,blocked"
+
+          # Include draft PRs
+          exempt-draft-pr: false
+
+          # Enable statistics for monitoring
+          enable-statistics: true
+
+          # Run the stale workflow as dry-run
+          debug-only: false
+
+          # Repository token
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

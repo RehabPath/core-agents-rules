@@ -1,0 +1,60 @@
+---
+alwaysApply: true
+---
+
+---
+description: Rules for placing npm packages in dependencies vs devDependencies in package.json
+globs: package.json
+alwaysApply: false
+---
+
+# Dependency Placement
+
+When adding or moving packages in `package.json`, place them in the correct section so that `pnpm install --prod` includes everything needed to **build and run** the app.
+
+## `dependencies` (production)
+
+Packages required to **build** or **run** the application:
+
+- Runtime libraries (React, Next.js, Axios, Zod, etc.)
+- CSS/styling toolchains consumed during `next build` (Tailwind CSS, PostCSS plugins, Tailwind plugins, styled-components)
+- Database clients (Prisma client, pg)
+- Any package imported at build time or runtime
+
+## `devDependencies` (development only)
+
+Packages used **only** for local development, testing, or code quality:
+
+- Type definitions (`@types/*`)
+- Linters and formatters (ESLint, Prettier)
+- Test frameworks (Jest, Testing Library)
+- Code generators and CLI tools (Prisma CLI, shadcn, Vercel CLI)
+- Git hooks (Husky, lint-staged)
+- Build-time-only compilers that are NOT required by `next build` (e.g., Babel plugins used only in tests)
+
+## Examples
+
+```jsonc
+// Good: Tailwind and its plugins in dependencies (needed by next build)
+"dependencies": {
+  "tailwindcss": "^4",
+  "@tailwindcss/postcss": "^4",
+  "@tailwindcss/forms": "^0.5.11",
+  "@tailwindcss/typography": "^0.5.19"
+}
+
+// Bad: Tailwind plugin split across both sections
+"dependencies": {
+  "@tailwindcss/forms": "^0.5.11"
+}
+"devDependencies": {
+  "@tailwindcss/typography": "^0.5.19"  // inconsistent — needed for build
+}
+```
+
+## Quick check
+
+Before placing a package, ask: **"Is this package needed when running `pnpm install --prod && pnpm build && pnpm start`?"**
+
+- Yes -> `dependencies`
+- No -> `devDependencies`
