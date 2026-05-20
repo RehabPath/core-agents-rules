@@ -1,3 +1,4 @@
+<<<<<<<< HEAD:.cursor/rules/tessl__rule__recovery__testing__utility-checks-testing.mdc
 ---
 alwaysApply: true
 ---
@@ -10,6 +11,12 @@ description: Testing patterns specifically for utility functions and type guards
 # Utility Function Testing Patterns
 
 Extends the general [unit-test.mdc](../../.tessl/tiles/recovery/testing/rules/unit-test.mdc) guidelines with specific patterns for utility functions.
+========
+
+# Utility Function Testing Patterns
+
+Extends the general the `unit-test` rule in `recovery/testing` guidelines with specific patterns for utility functions.
+>>>>>>>> origin/main:tessl/testing/rules/utility-checks-testing.md
 
 ## Type Guard Testing Structure
 

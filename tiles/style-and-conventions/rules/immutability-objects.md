@@ -1,6 +1,10 @@
----
-alwaysApply: true
----
+## <<<<<<<< HEAD:tiles/style-and-conventions/rules/immutability-objects.md
+
+## alwaysApply: true
+
+========
+
+> > > > > > > > origin/main:tessl/code-standards/rules/immutability.md
 
 # Immutability Rule for Objects
 

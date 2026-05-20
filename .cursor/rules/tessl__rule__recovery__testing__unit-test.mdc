@@ -1,3 +1,4 @@
+<<<<<<<< HEAD:.cursor/rules/tessl__rule__recovery__testing__unit-test.mdc
 ---
 alwaysApply: true
 ---
@@ -6,6 +7,8 @@ alwaysApply: true
 globs: **/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts
 alwaysApply: false
 ---
+========
+>>>>>>>> origin/main:tessl/testing/rules/unit-test.md
 
 # Unit tests
 
@@ -310,4 +313,4 @@ Example:
 // src/components/Button.test.ts
 ```
 
-After writing tests, always run `yarn test` to ensure the tests are passing.
+After writing tests, always run `pnpm test` to ensure the tests are passing.

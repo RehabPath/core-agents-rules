@@ -1,3 +1,4 @@
+<<<<<<<< HEAD:.cursor/rules/tessl__rule__recovery__style-and-conventions__utility-checks-functions.mdc
 ---
 alwaysApply: true
 ---
@@ -6,6 +7,8 @@ alwaysApply: true
 globs: **/utils/checks.util.ts
 description: Guidelines for creating checks
 ---
+========
+>>>>>>>> origin/main:tessl/code-standards/rules/utility-checks-functions.md
 
 # Utility Checks Functions Guide
 
@@ -55,4 +58,8 @@ Every utility function must have comprehensive tests covering:
 - Type boundaries
 - Invalid inputs
 
+<<<<<<<< HEAD:.cursor/rules/tessl__rule__recovery__style-and-conventions__utility-checks-functions.mdc
 Follow the established [unit-test.mdc](../../.tessl/tiles/recovery/style-and-conventions/rules/unit-test.mdc) patterns for test structure.
+========
+Follow the established the `unit-test` rule in `recovery/testing` patterns for test structure.
+>>>>>>>> origin/main:tessl/code-standards/rules/utility-checks-functions.md

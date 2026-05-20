@@ -1,6 +1,9 @@
+<<<<<<<< HEAD:.cursor/rules/environment-variables.mdc
 ---
 alwaysApply: true
 ---
+========
+>>>>>>>> origin/main:tessl/architecture/rules/environment-variables.md
 
 # Environment Variables
 

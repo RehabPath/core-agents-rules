@@ -1,0 +1,62 @@
+{
+  "context": "Consolidation of the feed bounded context: renaming AlgoliaHit to FeedCenter across the codebase, deleting deprecated shim files, and rewiring all consumers to import from domain/feed.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "algolia_hit_removed_from_non_feed_code",
+      "example": "The ground truth renames all AlgoliaHit usages across src/components, src/application, src/persistence, and src/domain/feed/use-cases to FeedCenter, and removes the AlgoliaHit re-export from src/domain/search/types.ts.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "The name AlgoliaHit no longer appears as a type annotation or import in component, application, or persistence code. All such code works with FeedCenter from @/domain/feed/feed instead."
+    },
+    {
+      "name": "deprecated_shim_files_deleted",
+      "example": "The ground truth deletes src/types/models/Algolia.model.ts, src/domain/search/constants.ts, src/domain/search/types.ts, src/domain/score/const.ts, and src/domain/feed/constants.ts.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "The deprecated re-export shim files are deleted rather than retained as empty or commented-out dead code. The old import paths no longer exist in the project."
+    },
+    {
+      "name": "constants_rewired_to_feed_const",
+      "example": "The ground truth updates imports in files like BrowseFeed.tsx, BrowsePage.tsx, NearbyFeedHeader.tsx, SortBySelector.tsx, generateTherapyBrowseUrl.ts, etc. to use @/domain/feed/const.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "All consumers that previously imported from the deprecated constants shims now import directly from @/domain/feed/const. No code uses the old import paths for constants."
+    },
+    {
+      "name": "search_types_rewired_to_feed_module",
+      "example": "The ground truth updates Feed.model.ts, FilterResultsHeader.tsx, convertRefinementsToBreadCrumbs.ts, and types/models/index.ts to import from @/domain/feed/feed.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "All consumers that previously imported types (SearchState, CustomSearchState, RefinementList, FacetList, InstantSearch, ValueState) from src/types/models/Algolia.model or src/domain/search/types now import them from @/domain/feed/feed."
+    },
+    {
+      "name": "algolia_raw_shape_confined_to_domain_feed",
+      "example": "In the ground truth, the local AlgoliaHit type (with objectID, slug, _rankingInfo, etc.) is defined only inside mapAlgoliaHitToFeedCenter.ts within src/domain/feed/use-cases/; all other layers use FeedCenter.",
+      "category": "DESIGN",
+      "max_score": 1,
+      "description": "The raw Algolia hit shape (the type describing the Algolia API response contract) is defined or referenced only within src/domain/feed/. No other layer introduces a type that mirrors the Algolia wire format."
+    },
+    {
+      "name": "no_behavior_change",
+      "example": "All diffs in the ground truth are import path updates and type renames; no logic is added or removed in any component or use-case file.",
+      "category": "MINIMALITY",
+      "max_score": 1,
+      "description": "The refactor is purely structural. No runtime logic, component rendering, API calls, or user-visible output changes as a result of the migration."
+    },
+    {
+      "name": "types_models_index_updated",
+      "example": "The ground truth changes the FacetList, SearchState, CustomSearchState, InstantSearch, and ValueState exports in index.ts to point to @/domain/feed/feed.",
+      "category": "INTEGRATION",
+      "max_score": 1,
+      "description": "The barrel file src/types/models/index.ts no longer re-exports from Algolia.model.ts and instead exports types from their new canonical locations in the feed domain."
+    },
+    {
+      "name": "no_new_deprecated_shims_introduced",
+      "example": "The ground truth deletes all shim files and updates every consumer; it does not create new shims pointing elsewhere.",
+      "category": "MUST_NOT",
+      "max_score": 1,
+      "description": "The solution does not introduce new temporary re-export shims or @deprecated bridge files. All old import paths are removed and consumers are updated directly to use canonical locations."
+    }
+  ]
+}

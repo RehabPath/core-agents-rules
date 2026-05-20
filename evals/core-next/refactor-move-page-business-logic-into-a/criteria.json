@@ -1,0 +1,69 @@
+{
+  "context": "Evaluates refactoring of Next.js page components to extract business logic (data fetching, metadata generation, caching) into dedicated application-layer use-case modules following the get{Feature}PageData pattern already established in src/application/center/getCenterProfilePageData.ts",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "location_page_delegates_to_application_layer",
+      "example": "Page imports getLocationLandingPageData and calls it with the slug; the persistence imports (fetchLocationLandingPageData, fetchCountryTitles, fetchPrimaryFocusTerms, etc.) that were previously in the page are gone.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "src/app/location/[slug]/page.tsx no longer contains inline persistence imports or data assembly logic. The page component body delegates data fetching to a function from src/application/location/."
+    },
+    {
+      "name": "metadata_delegated_to_application_function",
+      "example": "Location page's generateMetadata calls getLocationLandingMetadata(slug) from the application module; partner page calls getPartnerMetadata(slug); the inline SEO/OpenGraph construction is removed from the page files.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "generateMetadata in affected page files delegates to an application-layer function rather than implementing metadata construction inline. The page's generateMetadata body is a short wrapper."
+    },
+    {
+      "name": "multiple_pages_refactored",
+      "example": "New modules exist for location, taxonomy, partner/podcast, author, brand, landing, and resources pages — each reducing their corresponding page.tsx to a thin wrapper.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "Application modules are created for multiple categories of page beyond just one. At minimum the location pages, taxonomy pages, and at least two of: content pages (partner/podcast), author, brand, landing, or resources pages are covered."
+    },
+    {
+      "name": "application_module_naming_and_location",
+      "example": "src/application/location/getLocationLandingPageData.ts, src/application/taxonomy/getTaxonomyTermPageData.ts, src/application/author/getAuthorPageData.ts, etc.",
+      "category": "REUSE",
+      "max_score": 1,
+      "description": "New application modules follow the established get{Feature}PageData.ts naming convention and live under src/application/{domain}/, consistent with src/application/center/getCenterProfilePageData.ts."
+    },
+    {
+      "name": "cache_used_in_application_modules",
+      "example": "getLocationLandingPageData.ts wraps fetchLocationLandingPageData with cache() so that generateMetadata and the page body share the same cached result within a single render.",
+      "category": "REUSE",
+      "max_score": 1,
+      "description": "Application modules use React's cache() to wrap persistence calls, preventing duplicate fetches when both generateMetadata and the page component call the same module."
+    },
+    {
+      "name": "taxonomy_pages_share_single_module",
+      "example": "All 11 taxonomy page.tsx files import getTaxonomyTermPageData and getTaxonomyTermPageMetadata from a single src/application/taxonomy/getTaxonomyTermPageData.ts module, passing their taxonomySegment as an argument.",
+      "category": "REUSE",
+      "max_score": 1,
+      "description": "All taxonomy term page variants (activities, amenities, approach, care, clientele, condition, insurance, languages, price, setting, therapies) use a single shared application module parameterized by taxonomy segment, rather than separate modules per taxonomy type."
+    },
+    {
+      "name": "application_module_exports_viewmodel_type",
+      "example": "getLocationLandingPageData.ts exports LocationLandingPageViewModel; getTaxonomyTermPageData.ts exports TaxonomyTermPageViewModel — allowing page.tsx and template components to type-check against the view model.",
+      "category": "DESIGN",
+      "max_score": 1,
+      "description": "Application modules define and export a typed ViewModel (or named return type) so that page components and template components can use strong types for the data they receive."
+    },
+    {
+      "name": "null_return_triggers_notfound",
+      "example": "Location page does: const viewModel = await getLocationLandingPageData(slug); if (!viewModel) notFound(). The module returns null when data.location is missing; the page calls notFound().",
+      "category": "EDGE_CASE",
+      "max_score": 1,
+      "description": "When an application module returns null (resource not found), the page component calls notFound() immediately. The not-found guard is in the page, not buried inside the application module."
+    },
+    {
+      "name": "template_components_moved_out_of_app_directory",
+      "example": "locationLandingTemplate.tsx moved to src/components/templates/LocationLandingTemplate/LocationLandingTemplate.tsx; CenterProfileOurCentersAsync.tsx moved to src/components/templates/CenterProfile/; taxonomyTermPage.tsx render portion extracted to src/components/templates/TaxonomyTermPageTemplate/.",
+      "category": "MINIMALITY",
+      "max_score": 1,
+      "description": "Non-route components (templates, async server components, client components) that were co-located inside src/app/ subdirectories are moved to src/components/templates/ or an appropriate components subdirectory, keeping app/ for route files only."
+    }
+  ]
+}

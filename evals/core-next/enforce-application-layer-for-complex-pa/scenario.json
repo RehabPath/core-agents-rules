@@ -1,0 +1,12 @@
+{
+  "type": "coding",
+  "fixtures": {
+    "codebase": {
+      "type": "commit",
+      "repoUrl": "https://github.com/RehabPath/core-next.git",
+      "ref": "ea20c52f340653c911f59d735eb97e26a68f7299",
+      "installPath": ".",
+      "exclude": ["tiles/**/*.md", "tiles/**/tile.json", "tessl.json"]
+    }
+  }
+}

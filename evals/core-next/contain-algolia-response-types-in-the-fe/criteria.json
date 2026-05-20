@@ -1,0 +1,41 @@
+{
+  "context": "Evaluates whether the solution introduces a proper boundary mapper from raw Algolia hits to the FeedCenter domain type, confining all Algolia-specific type knowledge to a single file in the domain/feed layer.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "boundary_mapper_exported",
+      "example": "`export const mapAlgoliaHitToFeedCenter = (hit: AlgoliaHit): FeedCenter => ...` in src/domain/feed/use-cases/mapAlgoliaHitToFeedCenter.ts",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "A mapper function is exported from the domain/feed layer and is callable by code that receives raw Algolia search hits. The function must accept a parameter representing the raw hit and return a domain center type."
+    },
+    {
+      "name": "algolia_type_not_exported",
+      "example": "`type AlgoliaHit = { objectID: string; ... }` — declared without `export`, making it file-private",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "The raw Algolia hit type is not exported from the file — consumers cannot import or reference it. Any code outside the mapper file works exclusively with the domain center type."
+    },
+    {
+      "name": "ranking_info_uses_domain_type",
+      "example": "AlgoliaHit declares `_rankingInfo?: AlgoliaRankingInfo & { [key: string]: unknown }` using the imported type from `@/domain/feed/feed`",
+      "category": "REUSE",
+      "max_score": 1,
+      "description": "The `_rankingInfo` field in the locally-defined raw hit shape references the existing AlgoliaRankingInfo type from the domain rather than redeclaring geo-distance fields inline."
+    },
+    {
+      "name": "hit_type_field_coverage",
+      "example": "AlgoliaHit declares objectID, slug, title, location_label, featured_image, provider_type, providerType, sponsor_tier, card_size, cardSize, status, primaryFocus, locations, what_we_treat, treatment_services, amenities, new_specializations, highlighted_specializations, slides, highlights, price, brand (with id/title/slug), legacyBuildRoot, site, hasCertifications, reviewCount, rating, google_review_count, google_rating, _rankingInfo, __queryID",
+      "category": "DESIGN",
+      "max_score": 1,
+      "description": "The locally-defined raw Algolia hit type covers the full set of fields that the domain center type declares — including both snake_case and camelCase field variants, nested types (brand), boolean flags, and numeric review/rating fields — so the mapper can perform a complete translation."
+    },
+    {
+      "name": "index_signature_compatible",
+      "example": "AlgoliaHit type includes `[key: string]: unknown` allowing arbitrary Algolia attributes to pass through safely",
+      "category": "EDGE_CASE",
+      "max_score": 1,
+      "description": "The raw Algolia hit type includes an index signature accepting arbitrary additional properties (`[key: string]: unknown`), preserving compatibility with Algolia responses that include undocumented fields and with FeedCenter's own index signature."
+    }
+  ]
+}

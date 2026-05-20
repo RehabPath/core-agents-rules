@@ -1,0 +1,22 @@
+name: Validate Tessl Tiles
+
+on:
+  pull_request:
+    paths:
+      - "tessl/**"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Tessl CLI
+        run: curl -fsSL https://get.tessl.io | sh
+
+      - name: Lint tiles
+        run: |
+          for tile in tessl/*/; do
+            echo "Linting $tile..."
+            tessl tile lint "$tile"
+          done

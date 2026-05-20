@@ -1,8 +1,14 @@
----
+## <<<<<<<< HEAD:tiles/ui/rules/html-accessibility.md
+
 description: Accessibility HTML checklist
-globs: src/components/**/*.tsx,src/app/**/*.tsx
+globs: src/components/**/\*.tsx,src/app/**/\*.tsx
 alwaysApply: false
+
 ---
+
+========
+
+> > > > > > > > origin/main:tessl/frontend/rules/html-accessibility.md
 
 ### Keyboard navigation & focus
 

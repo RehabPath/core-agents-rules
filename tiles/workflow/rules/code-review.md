@@ -1,7 +1,13 @@
----
+## <<<<<<<< HEAD:tiles/workflow/rules/code-review.md
+
 description: Things to take into account before and after finishing a task and code review
 alwaysApply: false
+
 ---
+
+========
+
+> > > > > > > > origin/main:tessl/workflows/rules/code-review.md
 
 ## Code Quality Standards
 

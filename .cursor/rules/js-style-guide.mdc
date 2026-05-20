@@ -1,8 +1,11 @@
+<<<<<<<< HEAD:.cursor/rules/js-style-guide.mdc
 ---
 description:
 globs:
 alwaysApply: true
 ---
+========
+>>>>>>>> origin/main:tessl/code-standards/rules/js-style-guide.md
 
 ## General Principles
 
@@ -105,6 +108,34 @@ switch (color) {
   }
   ```
 
+### Ternary operators
+
+- Avoid nested ternary expressions. They are hard to read and increase cognitive load.
+- Use `if` statements, guard clauses, or small helper functions instead.
+
+```js
+// Bad
+const target =
+  isPremium
+    ? isUS
+      ? '/condition/depression/'
+      : `/${citySlug}/depression/`
+    : '/condition/drug-addiction/'
+
+// Good
+function getTargetUrl({ isPremium, isUS, citySlug }) {
+  if (!isPremium) {
+    return '/condition/drug-addiction/'
+  }
+
+  if (isUS) {
+    return '/condition/depression/'
+  }
+
+  return `/${citySlug}/depression/`
+}
+```
+
 ### Comparison operators & equality
 
 - Use `===` and `!==` instead of `==` and `!=`.
@@ -116,6 +147,35 @@ if (a === b) {
 
 // Bad
 if (a == b) {
+}
+```
+
+## Error handling
+
+### Try/catch
+
+- Never leave a `catch` block empty.
+- Every `catch` block must do at least one of the following:
+  - Handle/recover from the error.
+  - Re-throw the error.
+  - Log the error with `logger.warn` when there is no recovery action and execution can continue.
+- Include enough context in the log message/data so the failure can be investigated.
+
+```ts
+// Bad
+try {
+  await syncCenterData(centerId)
+} catch (error) {}
+
+// Good
+try {
+  await syncCenterData(centerId)
+} catch (error) {
+  logger.warn({
+    message: 'Failed to sync center data; continuing request',
+    data: { centerId },
+    error
+  })
 }
 ```
 
@@ -247,6 +307,10 @@ const MAX_USERS = 100
 
 - **Component files**: Use PascalCase (e.g., `Button.tsx`, `CenterCard.tsx`, `ScrollToButton.tsx`)
 - **All other files**: Use camelCase (e.g., `checks.util.ts`, `getCenterProfileSlug.ts`, `useIsMobile.ts`)
+<<<<<<<< HEAD:.cursor/rules/js-style-guide.mdc
+========
+- **Domain model files**: `{domain}.model.ts` (e.g., `center.model.ts`, `feed.model.ts`)
+>>>>>>>> origin/main:tessl/code-standards/rules/js-style-guide.md
 - **Test files**: Inherit the source file's casing with `.test.ts` or `.test.tsx` suffix (e.g., `Button.test.tsx`, `getCenterProfileSlug.test.ts`)
 - **Cursor rules**: Use kebab-case (e.g., `js-style-guide.mdc`)
 
@@ -289,7 +353,11 @@ application/BrowseBy/                      // should be camelCase
 
 Barrel files (`index.ts` re-exports) are **only allowed for type-only exports**. All runtime exports must be imported directly from their source file.
 
+<<<<<<<< HEAD:.cursor/rules/js-style-guide.mdc
 For barrel files specifications follow [barrel-files.mdc](mdc:.cursor/rules/barrel-files.mdc)
+========
+For barrel files specifications follow the `barrel-files` rule in `recovery/code-standards`
+>>>>>>>> origin/main:tessl/code-standards/rules/js-style-guide.md
 
 ### Accessors
 
@@ -365,4 +433,8 @@ document.addEventListener('click', (event) => {
 
 ## Testing
 
+<<<<<<<< HEAD:.cursor/rules/js-style-guide.mdc
 For testing specifications follow [unit-test.mdc](mdc:.cursor/rules/unit-test.mdc)
+========
+For testing specifications follow the `unit-test` rule in `recovery/testing`
+>>>>>>>> origin/main:tessl/code-standards/rules/js-style-guide.md
