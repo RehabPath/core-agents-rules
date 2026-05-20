@@ -9,13 +9,18 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install Tessl CLI
-        run: curl -fsSL https://get.tessl.io | sh
+      - uses: tesslio/setup-tessl@v2
+        with:
+          # Official docs name the secret TESSL_TOKEN; TESSL_API_KEY is supported for existing repos.
+          token: ${{ secrets.TESSL_TOKEN || secrets.TESSL_API_KEY }}
 
       - name: Detect changed tiles
         id: changed
@@ -42,8 +47,6 @@ jobs:
           done
 
       - name: Publish changed tiles
-        env:
-          TESSL_API_KEY: ${{ secrets.TESSL_API_KEY }}
         run: |
           for tile in ${{ steps.changed.outputs.tiles }}; do
             [ -d "tessl/$tile" ] || continue

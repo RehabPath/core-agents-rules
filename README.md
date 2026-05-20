@@ -141,13 +141,12 @@ The agent treats them as additive. If the same topic appears in both, deduplicat
 | `publish-tiles.yml` | Push to `main` touching `tessl/**` | Lints then publishes only the changed tiles |
 | `notify-slack.yml` | Push to `main` touching `tessl/**` | Posts changed tile names to Slack |
 
-The `publish-tiles.yml` workflow requires a `TESSL_API_KEY` secret:
+The `publish-tiles.yml` workflow requires a Tessl API key as a GitHub Actions secret ([docs](https://docs.tessl.io/distribute/review-and-publish-with-github-actions.md)):
 
-```bash
-tessl api-key create
-```
+1. Create a key at [tessl.io/account/api-keys](https://tessl.io/account/api-keys) (or `tessl api-key create` with the CLI).
+2. Add **Settings → Secrets and variables → Actions → New repository secret** named **`TESSL_TOKEN`** (preferred; matches [setup-tessl](https://github.com/tesslio/setup-tessl)). The workflow also accepts an existing **`TESSL_API_KEY`** secret.
 
-**Settings > Secrets and variables > Actions > New repository secret > `TESSL_API_KEY`**
+The workflow uses [`tesslio/setup-tessl@v2`](https://github.com/tesslio/setup-tessl) to install the CLI and authenticate later steps — do not rely on passing `TESSL_API_KEY` as a step `env` alone; the CLI reads **`TESSL_TOKEN`**.
 
 ---
 
