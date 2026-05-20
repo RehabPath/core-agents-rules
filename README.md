@@ -111,7 +111,7 @@ This repo is configured to publish tiles from GitHub Actions using `.github/work
 
 Required repository secret:
 
-- `TESSL_TOKEN`: Tessl API token for a service account/user with publish permission in workspace `recovery`. Create it in the [Tessl Web UI](https://tessl.io) workspace settings, then add it under GitHub **Settings → Secrets and variables → Actions**.
+- `TESSL_TOKEN`: Tessl API token for a service account/user with publish permission in workspace `recovery`. Create it in the [Tessl Web UI](https://tessl.io) workspace settings, then add it under GitHub **Settings → Secrets and variables → Actions**. If this repo still has `TESSL_API_KEY` from the older workflow, create `TESSL_TOKEN` with the same value before merging.
 
 To enforce review before publishing:
 
