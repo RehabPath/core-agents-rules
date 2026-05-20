@@ -1,2 +1,4 @@
 .tessl/
 node_modules/
+.cursor/
+.claude/
