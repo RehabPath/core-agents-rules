@@ -482,8 +482,6 @@ Set it equal to aroundRadius value to enable radius precision behavior.
 - Results are sorted by score/ranking, not just distance
 - Behavior matches main result pages
 
-````
-
 ### Sub-Task Example (Test)
 
 **Title**: "Test: Verify quality centers appear first"

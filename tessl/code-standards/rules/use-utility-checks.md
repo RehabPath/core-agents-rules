@@ -48,6 +48,7 @@ if (value.trim() === '') {
 if (value.length === 0) {
 ```
 ### ✅ Good: Using Utility Functions
+```typescript
 // Use utility functions for null/undefined checks
 if (isNull(value)) {
 if (isUndefined(value)) {
@@ -68,6 +69,7 @@ if (isEmptyString(value)) {
 if (isNonEmptyString(value)) {
 // Use utility functions for object checks
 if (isNonEmptyObject(value)) {
+```
 ## Benefits
 ### Type Safety
 - All utility functions are TypeScript type guards

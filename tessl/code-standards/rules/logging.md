@@ -6,23 +6,23 @@ The logger utility function is defined in `src/utils/logger/index.ts`.
 logger.info({
   message: 'This is an info message',
   data: {
-    key: 'value'
-  }
-  error: new Error('This is an error')
+    key: 'value',
+  },
+  error: new Error('This is an error'),
 })
 logger.warn({
   message: 'This is a warning message',
   data: {
-    key: 'value'
-  }
-  error: new Error('This is an error')
+    key: 'value',
+  },
+  error: new Error('This is an error'),
 })
 logger.error({
   message: 'This is an error message',
   data: {
-    key: 'value'
-  }
-  error: new Error('This is an error')
+    key: 'value',
+  },
+  error: new Error('This is an error'),
 })
 ```
 
