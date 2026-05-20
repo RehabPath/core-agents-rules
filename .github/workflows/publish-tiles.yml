@@ -20,7 +20,7 @@ jobs:
       - name: Detect changed tiles
         id: changed
         run: |
-          TILES=$(git diff --name-only HEAD~1 HEAD -- 'tessl/**' \
+          TILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- 'tessl/**' \
             | grep '^tessl/' \
             | sed 's|tessl/||;s|/.*||' \
             | sort -u \
@@ -31,6 +31,7 @@ jobs:
       - name: Lint changed tiles
         run: |
           for tile in ${{ steps.changed.outputs.tiles }}; do
+            [ -d "tessl/$tile" ] || continue
             echo "Linting tessl/$tile..."
             tessl tile lint "tessl/$tile/"
           done
@@ -40,6 +41,7 @@ jobs:
           TESSL_API_KEY: ${{ secrets.TESSL_API_KEY }}
         run: |
           for tile in ${{ steps.changed.outputs.tiles }}; do
+            [ -d "tessl/$tile" ] || continue
             echo "Publishing tessl/$tile..."
             tessl tile publish "tessl/$tile/"
           done
