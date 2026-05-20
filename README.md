@@ -105,12 +105,13 @@ If publish fails with a permission error, request publisher-or-higher access in 
 This repo is configured to publish tiles from GitHub Actions using `.github/workflows/publish-tiles.yml`.
 
 - It runs on `push` to `main` (plus manual `workflow_dispatch`).
-- It publishes only tiles changed in that push.
+- It installs the Tessl CLI via [`tesslio/setup-tessl@v2`](https://github.com/tesslio/setup-tessl).
+- It lints and publishes only tiles changed in that push.
 - It uses `--bump patch` so repeated publishes do not fail on existing versions.
 
 Required repository secret:
 
-- `TESSL_API_KEY`: Tessl API key for a service account/user with publish permission in workspace `recovery`.
+- `TESSL_TOKEN`: Tessl API token for a service account/user with publish permission in workspace `recovery`. Create it in the [Tessl Web UI](https://tessl.io) workspace settings, then add it under GitHub **Settings → Secrets and variables → Actions**.
 
 To enforce review before publishing:
 

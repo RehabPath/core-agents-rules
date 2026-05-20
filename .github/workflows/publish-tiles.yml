@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: publish-tiles-main
@@ -19,26 +20,16 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    env:
-      TESSL_API_KEY: ${{ secrets.TESSL_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Verify Tessl API key exists
-        run: |
-          if [ -z "$TESSL_API_KEY" ]; then
-            echo "Missing required secret: TESSL_API_KEY"
-            exit 1
-          fi
-
-      - name: Install Tessl CLI
-        run: curl -fsSL https://get.tessl.io | sh
-
-      - name: Add Tessl CLI to PATH
-        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Setup Tessl CLI
+        uses: tesslio/setup-tessl@v2
+        with:
+          token: ${{ secrets.TESSL_TOKEN }}
 
       - name: Determine changed tiles
         id: changed
@@ -67,6 +58,15 @@ jobs:
             echo "$CHANGED_TILES"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Lint changed tiles
+        if: steps.changed.outputs.has_changes == 'true'
+        run: |
+          while IFS= read -r tile; do
+            [ -n "$tile" ] || continue
+            echo "Linting tiles/$tile"
+            tessl tile lint "tiles/$tile"
+          done <<< "${{ steps.changed.outputs.tiles }}"
 
       - name: Publish changed tiles
         if: steps.changed.outputs.has_changes == 'true'
