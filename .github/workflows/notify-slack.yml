@@ -15,14 +15,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Get changed tiles
         id: changes
         run: |
-          ADDED=$(git diff --name-only --diff-filter=A "${{ github.event.before }}" "${{ github.sha }}" -- 'tessl/**' | (grep '^tessl/' || true) | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
-          MODIFIED=$(git diff --name-only --diff-filter=M "${{ github.event.before }}" "${{ github.sha }}" -- 'tessl/**' | (grep '^tessl/' || true) | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
-          DELETED=$(git diff --name-only --diff-filter=D "${{ github.event.before }}" "${{ github.sha }}" -- 'tessl/**' | (grep '^tessl/' || true) | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
+          BEFORE="${{ github.event.before }}"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE="${{ github.sha }}^"
+          fi
+          ADDED=$(git diff --name-only --diff-filter=A "$BEFORE" "${{ github.sha }}" -- 'tessl/**' | (grep '^tessl/' || true) | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
+          MODIFIED=$(git diff --name-only --diff-filter=M "$BEFORE" "${{ github.sha }}" -- 'tessl/**' | (grep '^tessl/' || true) | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
+          DELETED=$(git diff --name-only --diff-filter=D "$BEFORE" "${{ github.sha }}" -- 'tessl/**' | (grep '^tessl/' || true) | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
 
           echo "added=$ADDED" >> $GITHUB_OUTPUT
           echo "modified=$MODIFIED" >> $GITHUB_OUTPUT

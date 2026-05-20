@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Install Tessl CLI
         run: curl -fsSL https://get.tessl.io | sh
@@ -20,8 +20,13 @@ jobs:
       - name: Detect changed tiles
         id: changed
         run: |
-          TILES=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- 'tessl/**' \
-            | grep '^tessl/' \
+          BEFORE="${{ github.event.before }}"
+          # On a branch's first push, before is all zeros — diff against parent instead
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE="${{ github.sha }}^"
+          fi
+          TILES=$(git diff --name-only "$BEFORE" "${{ github.sha }}" -- 'tessl/**' \
+            | (grep '^tessl/' || true) \
             | sed 's|tessl/||;s|/.*||' \
             | sort -u \
             | tr '\n' ' ')
