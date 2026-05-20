@@ -311,7 +311,7 @@ After writing tests, always run `pnpm test` to ensure the tests are passing.
 
 # Utility Function Testing Patterns
 
-Extends the general the Unit Testing section in the `recovery/testing` tile guidelines with specific patterns for utility functions.
+Extends the Unit Testing section in the `recovery/testing` tile guidelines with specific patterns for utility functions.
 
 ## Type Guard Testing Structure
 

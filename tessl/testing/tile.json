@@ -1,6 +1,6 @@
 {
   "name": "recovery/testing",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "summary": "Unit testing conventions with Jest and React Testing Library: test structure, mocking strategy, negative test cases, and utility function testing patterns",
   "private": true,
   "steering": {
