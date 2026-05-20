@@ -5,30 +5,29 @@ on:
     branches:
       - main
     paths:
-      - '.rulesync/rules/**'
+      - 'tessl/**'
 
 jobs:
   notify:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
-      - name: Get changed rules
+      - name: Get changed tiles
         id: changes
         run: |
-          # Get added files
-          ADDED=$(git diff --name-only --diff-filter=A HEAD~1 HEAD -- '.rulesync/rules/*.md' | xargs -I {} basename {} .md | tr '\n' ', ' | sed 's/,$//')
-          
-          # Get modified files
-          MODIFIED=$(git diff --name-only --diff-filter=M HEAD~1 HEAD -- '.rulesync/rules/*.md' | xargs -I {} basename {} .md | tr '\n' ', ' | sed 's/,$//')
-          
-          # Get deleted files
-          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- '.rulesync/rules/*.md' | xargs -I {} basename {} .md | tr '\n' ', ' | sed 's/,$//')
-          
+          BEFORE="${{ github.event.before }}"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE="${{ github.sha }}^"
+          fi
+          ADDED=$(git diff --name-only --diff-filter=A "$BEFORE" "${{ github.sha }}" -- 'tessl/**' | (grep '^tessl/' || true) | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
+          MODIFIED=$(git diff --name-only --diff-filter=M "$BEFORE" "${{ github.sha }}" -- 'tessl/**' | (grep '^tessl/' || true) | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
+          DELETED=$(git diff --name-only --diff-filter=D "$BEFORE" "${{ github.sha }}" -- 'tessl/**' | (grep '^tessl/' || true) | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
+
           echo "added=$ADDED" >> $GITHUB_OUTPUT
           echo "modified=$MODIFIED" >> $GITHUB_OUTPUT
           echo "deleted=$DELETED" >> $GITHUB_OUTPUT
@@ -38,22 +37,22 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          MESSAGE="*LLM Rules Updated* 🤖\n\n"
-          
+          MESSAGE="*LLM Rules Updated*\n\n"
+
           if [ -n "${{ steps.changes.outputs.added }}" ]; then
-            MESSAGE="${MESSAGE}✨ *New rules:* ${{ steps.changes.outputs.added }}\n"
+            MESSAGE="${MESSAGE}New tiles: ${{ steps.changes.outputs.added }}\n"
           fi
-          
+
           if [ -n "${{ steps.changes.outputs.modified }}" ]; then
-            MESSAGE="${MESSAGE}✏️ *Modified:* ${{ steps.changes.outputs.modified }}\n"
+            MESSAGE="${MESSAGE}Modified: ${{ steps.changes.outputs.modified }}\n"
           fi
-          
+
           if [ -n "${{ steps.changes.outputs.deleted }}" ]; then
-            MESSAGE="${MESSAGE}🗑️ *Removed:* ${{ steps.changes.outputs.deleted }}\n"
+            MESSAGE="${MESSAGE}Removed: ${{ steps.changes.outputs.deleted }}\n"
           fi
-          
+
           MESSAGE="${MESSAGE}\n<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|View commit>"
-          
+
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\": \"$MESSAGE\"}" \
             "$SLACK_WEBHOOK_URL"

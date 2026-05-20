@@ -1,0 +1,52 @@
+name: Publish Tessl Tiles
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tessl/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Tessl CLI
+        run: curl -fsSL https://get.tessl.io | sh
+
+      - name: Detect changed tiles
+        id: changed
+        run: |
+          BEFORE="${{ github.event.before }}"
+          # On a branch's first push, before is all zeros — diff against parent instead
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE="${{ github.sha }}^"
+          fi
+          TILES=$(git diff --name-only "$BEFORE" "${{ github.sha }}" -- 'tessl/**' \
+            | (grep '^tessl/' || true) \
+            | sed 's|tessl/||;s|/.*||' \
+            | sort -u \
+            | tr '\n' ' ')
+          echo "tiles=$TILES" >> $GITHUB_OUTPUT
+          echo "Changed tiles: $TILES"
+
+      - name: Lint changed tiles
+        run: |
+          for tile in ${{ steps.changed.outputs.tiles }}; do
+            [ -d "tessl/$tile" ] || continue
+            echo "Linting tessl/$tile..."
+            tessl tile lint "tessl/$tile/"
+          done
+
+      - name: Publish changed tiles
+        env:
+          TESSL_API_KEY: ${{ secrets.TESSL_API_KEY }}
+        run: |
+          for tile in ${{ steps.changed.outputs.tiles }}; do
+            [ -d "tessl/$tile" ] || continue
+            echo "Publishing tessl/$tile..."
+            tessl tile publish "tessl/$tile/"
+          done

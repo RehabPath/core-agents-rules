@@ -1,0 +1,50 @@
+
+# Utility Checks Functions Guide
+
+## Naming Conventions
+
+### Type Checking Functions
+
+- Use clear, concise names that follow established conventions
+- Prefer widely recognized terms over verbose descriptions
+- Examples:
+  - `isBlank` instead of `isNilOrEmptyString` (follows Ruby/Rails convention)
+  - `isEmpty` instead of `isEmptyValue`
+  - `isPresent` instead of `isNonEmptyValue`
+
+### Function Patterns
+
+- All type checking functions should follow the pattern: `is{Condition}`
+- Use TypeScript type guards: `(value: unknown): value is Type`
+- Keep functions pure - no side effects
+
+## Implementation Standards
+
+### Type Guards
+
+```typescript
+// Good - specific type guard
+export const isString = (value: unknown): value is string =>
+  typeof value === 'string'
+
+// Good - compound type guard
+export const isBlank = (value: unknown): value is null | undefined | '' =>
+  isNil(value) || isEmptyString(value)
+```
+
+### Function Composition
+
+- Build complex checks from simpler ones
+- Reuse existing utility functions
+- Example: `isBlank` uses `isNil` and `isEmptyString`
+
+## Testing Requirements
+
+Every utility function must have comprehensive tests covering:
+
+- Happy path cases
+- Edge cases
+- Type boundaries
+- Invalid inputs
+
+Follow the established the `unit-test` rule in `recovery/testing` patterns for test structure.
