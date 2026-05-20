@@ -1,0 +1,11 @@
+{
+  "name": "recovery/architecture",
+  "version": "1.0.0",
+  "summary": "Clean architecture: API design, domain vs application layer separation, atomic design, dependency placement, and environment variables",
+  "private": true,
+  "steering": {
+    "architecture": {
+      "rules": "rules/architecture.md"
+    }
+  }
+}

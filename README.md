@@ -1,297 +1,75 @@
 # core-llm-rules
 
-Shared AI assistant rules for Cursor and Claude Code. When installed, this package generates rule files for both tools using [rulesync](https://github.com/dyoshikawa/rulesync).
+Shared AI assistant rules for Cursor and Claude Code, distributed as [Tessl](https://tessl.io) tiles.
 
-## Requirements
+Rules are delivered at runtime via the Tessl MCP server — no files are copied to consuming projects.
 
-- Node.js 22+
+## Tiles
 
-## Installation
+| Tile | Contents |
+|------|----------|
+| `recovery/code-standards` | JS/TS style, utility check functions, immutability, logging, barrel files |
+| `recovery/architecture` | API design, domain vs application layer, atomic design, dependency placement, env vars |
+| `recovery/frontend` | Animation, design conventions, accessibility, icon components, SVG guidelines, core-components |
+| `recovery/seo` | Canonical URLs, meta tags, social metadata, link semantics, schema markup, SSR |
+| `recovery/testing` | Unit test structure, mocking strategy, negative test cases, utility testing patterns |
+| `recovery/workflows` | Bug workflow, code review, PR creation, Shape Up → Linear, ticket creation |
+| `recovery/bugbot` | Code review enforcement rules (global + per architecture layer) |
 
-Install directly from GitHub:
+All tiles are private to the `recovery` workspace.
 
-### npm
-
-```bash
-npm install github:RehabPath/core-llm-rules
-```
-
-### yarn
-
-```bash
-yarn add RehabPath/core-llm-rules
-```
-
-### pnpm
+## Installing in a project
 
 ```bash
-pnpm add github:RehabPath/core-llm-rules
+# 1. Set up Tessl (one-time per project)
+tessl init
+
+# 2. Install tiles
+tessl install recovery/code-standards
+tessl install recovery/architecture
+tessl install recovery/frontend
+tessl install recovery/seo
+tessl install recovery/testing
+tessl install recovery/workflows
+tessl install recovery/bugbot
 ```
 
-### With a specific branch/tag
+`tessl init` creates `tessl.json` and configures the MCP server for Claude Code, Cursor, or whichever agent is detected. After that, agents receive rules automatically at startup.
+
+## Updating to the latest version
 
 ```bash
-# npm
-npm install github:RehabPath/core-llm-rules#main
-
-# yarn
-yarn add RehabPath/core-llm-rules#main
-
-# pnpm
-pnpm add github:RehabPath/core-llm-rules#main
+tessl update
 ```
 
-On install, the package will automatically:
-1. Generate rules using rulesync (within the package)
-2. Copy `.cursor/rules/` to your project (Cursor rules)
-3. Copy `.claude/` to your project (Claude Code rules including `CLAUDE.md`)
+## Adding or editing a rule
 
-## Adding a New Rule (for contributors)
+1. Edit the relevant `tessl/<tile>/rules/<tile>.md` file
+2. Bump the version in `tessl/<tile>/tile.json` (semver — patch for content tweaks, minor for new sections)
+3. Open a PR — CI will lint the tile on the PR and publish automatically on merge to `main`
 
-Rules are stored in `.rulesync/rules/` as Markdown files with YAML frontmatter.
+## CI / CD
 
-### 1. Create a new rule file
+| Workflow | Trigger | Action |
+|----------|---------|--------|
+| `validate-tiles.yml` | PR touching `tessl/**` | `tessl tile lint` all tiles |
+| `publish-tiles.yml` | Push to `main` touching `tessl/**` | `tessl tile publish` all tiles |
+| `notify-slack.yml` | Push to `main` touching `tessl/**` | Posts changed tile names to Slack |
 
-Create a new `.md` file in `.rulesync/rules/`:
+The `publish-tiles.yml` workflow requires a `TESSL_API_KEY` secret. Generate one with:
 
 ```bash
-touch .rulesync/rules/my-new-rule.md
+tessl api-key create
 ```
 
-### 2. Add frontmatter and content
+Then add it to the repo: **Settings → Secrets and variables → Actions → New repository secret** → `TESSL_API_KEY`.
 
-```markdown
----
-root: false
-targets: ["cursor", "claudecode"]
-description: "Brief description of what this rule does"
-globs: ["**/*.ts", "**/*.tsx"]  # Optional: file patterns to match
-cursor:
-  alwaysApply: false  # true = always active, false = only when globs match
-  description: "Description shown in Cursor"
-  globs: ["**/*.ts"]  # Optional: Cursor-specific globs
----
-
-# Rule Title
-
-Your rule content goes here. Use Markdown formatting.
-
-## Guidelines
-
-- Guideline 1
-- Guideline 2
-
-## Examples
-
-### Good
-
-```typescript
-// Good example
-```
-
-### Bad
-
-```typescript
-// Bad example
-```
-```
-
-### 3. Frontmatter Options
-
-| Option | Type | Description |
-|--------|------|-------------|
-| `root` | boolean | `true` for overview files (generates CLAUDE.md), `false` for detailed rules |
-| `targets` | array | Tools to generate for: `["cursor", "claudecode"]` or `["*"]` for all |
-| `description` | string | Brief description of the rule |
-| `globs` | array | File patterns when this rule applies (e.g., `["**/*.test.ts"]`) |
-| `cursor.alwaysApply` | boolean | `true` = always active in Cursor, `false` = only when globs match |
-| `cursor.description` | string | Cursor-specific description |
-| `cursor.globs` | array | Cursor-specific file patterns |
-
-### 4. Rule Types
-
-**Always-apply rules** (active for all files):
-```yaml
----
-root: false
-targets: ["cursor", "claudecode"]
-description: "Code style guidelines"
-globs: ["**/*.js", "**/*.ts"]
-cursor:
-  alwaysApply: true
----
-```
-
-**Glob-specific rules** (active only for matching files):
-```yaml
----
-root: false
-targets: ["cursor", "claudecode"]
-description: "Unit testing conventions"
-globs: ["**/*.test.ts", "**/*.spec.ts"]
-cursor:
-  alwaysApply: false
-  globs: ["**/*.test.ts", "**/*.spec.ts"]
----
-```
-
-**On-demand rules** (manually referenced):
-```yaml
----
-root: false
-targets: ["cursor", "claudecode"]
-description: "PR creation checklist"
-cursor:
-  alwaysApply: false
----
-```
-
-### 5. Regenerate rules
-
-After adding or modifying rules, regenerate the output files:
-
-```bash
-npx rulesync generate --targets cursor,claudecode --features rules
-```
-
-Or use the package script:
-
-```bash
-npx generate-llm-rules
-```
-
-## Included Rules
-
-### Always Applied
-- **overview** - Core principles and guidelines
-- **js-style-guide** - JavaScript/TypeScript code style
-- **environment-variables** - Environment variable access patterns
-- **immutability-objects** - Object immutability patterns
-- **logging-guidelines** - Logger utility usage
-- **use-utility-checks** - Utility check function usage
-
-### Glob-Specific
-- **unit-test** - Unit testing conventions (`*.test.ts`, `*.spec.ts`)
-- **seo-guidelines** - SEO guidelines (`*.tsx`, `*.jsx`)
-- **html-accessibility** - Accessibility checklist (`*.tsx`, `*.jsx`, `*.html`)
-- **utility-checks-testing** - Utility function testing patterns
-- **utility-checks-functions** - Utility checks functions guide
-- **atomic-design-component-creation** - Component creation guidelines
-
-### On-Demand
-- **code-review** - Code review checklist
-- **github-pr-creation** - GitHub PR creation rules
-- **shape-up-to-linear-conversion** - Notion to Linear conversion
-- **single-ticket-creation** - Linear ticket creation rules
-
-## Generated Files
-
-The package generates:
+## Tile structure
 
 ```
-your-project/
-├── .cursor/
-│   └── rules/
-│       ├── overview.mdc
-│       ├── js-style-guide.mdc
-│       └── ... (other .mdc files)
-└── .claude/
-    ├── CLAUDE.md
+tessl/
+└── <tile-name>/
+    ├── tile.json       ← name, version, summary, steering config
     └── rules/
-        ├── js-style-guide.md
-        └── ... (other .md files)
+        └── <tile-name>.md  ← plain Markdown, no YAML frontmatter
 ```
-
-## Updating
-
-To update to the latest version, reinstall the package:
-
-```bash
-# npm
-npm install github:RehabPath/core-llm-rules
-
-# yarn
-yarn add RehabPath/core-llm-rules
-
-# pnpm
-pnpm add github:RehabPath/core-llm-rules
-```
-
-## Validation
-
-Rules are validated against a JSON schema to ensure correct frontmatter format.
-
-### Run validation locally
-
-```bash
-npm run validate:rules
-```
-
-This checks:
-- Valid YAML frontmatter syntax
-- Required fields (`targets`, `description`)
-- Valid target values
-- Correct types for all fields
-
-### JSON Schema
-
-The schema is defined in `rule-schema.json` and validates:
-
-```json
-{
-  "required": ["targets", "description"],
-  "properties": {
-    "root": { "type": "boolean" },
-    "targets": { "type": "array", "items": { "enum": ["*", "cursor", "claudecode", ...] } },
-    "description": { "type": "string" },
-    "globs": { "type": "array" },
-    "cursor": { "alwaysApply": "boolean", "description": "string", "globs": "array" }
-  }
-}
-```
-
-## CI/CD
-
-### Rule Validation (GitHub Action)
-
-The `validate-rules.yml` workflow runs on every push/PR that modifies rules:
-- Validates all rule files against the JSON schema
-- Runs `rulesync generate` to ensure rules compile
-- Checks if generated files are in sync with source
-
-### Slack Notifications
-
-The `notify-slack.yml` workflow sends a Slack message when rules change on `main`:
-
-**Example notification:**
-```
-*LLM Rules Updated* 🤖
-
-✨ *New rules:* my-new-rule
-✏️ *Modified:* js-style-guide
-🗑️ *Removed:* deprecated-rule
-
-View commit
-```
-
-#### Setup Slack Webhook
-
-1. Go to your repo → **Settings** → **Secrets and variables** → **Actions**
-2. Click **New repository secret**
-3. Name: `SLACK_WEBHOOK_URL`
-4. Value: Your Slack incoming webhook URL
-
-#### Get a Slack Webhook URL
-
-1. Go to [Slack API Apps](https://api.slack.com/apps)
-2. Create a new app → **From scratch**
-3. Select your workspace
-4. Go to **Incoming Webhooks** → Enable
-5. Click **Add New Webhook to Workspace**
-6. Select the channel to post notifications
-7. Copy the webhook URL
-
-## Resources
-
-- [rulesync documentation](https://github.com/dyoshikawa/rulesync)
-- [rulesync config schema](https://raw.githubusercontent.com/dyoshikawa/rulesync/refs/heads/main/config-schema.json)

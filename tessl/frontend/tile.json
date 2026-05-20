@@ -1,0 +1,11 @@
+{
+  "name": "recovery/frontend",
+  "version": "1.0.0",
+  "summary": "Frontend conventions: animation, design, accessibility, icon components, SVG guidelines, and core-components library usage",
+  "private": true,
+  "steering": {
+    "frontend": {
+      "rules": "rules/frontend.md"
+    }
+  }
+}

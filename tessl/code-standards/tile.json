@@ -1,0 +1,11 @@
+{
+  "name": "recovery/code-standards",
+  "version": "1.0.0",
+  "summary": "TypeScript/JavaScript code style, utility check functions, immutability, logging, and barrel file conventions",
+  "private": true,
+  "steering": {
+    "code-standards": {
+      "rules": "rules/code-standards.md"
+    }
+  }
+}

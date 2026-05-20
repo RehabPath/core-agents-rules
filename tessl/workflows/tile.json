@@ -1,0 +1,11 @@
+{
+  "name": "recovery/workflows",
+  "version": "1.0.0",
+  "summary": "Team workflows: bug-fixing process, code review checklist, GitHub PR creation, Shape Up to Linear conversion, and ticket creation",
+  "private": true,
+  "steering": {
+    "workflows": {
+      "rules": "rules/workflows.md"
+    }
+  }
+}

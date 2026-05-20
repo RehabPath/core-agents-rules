@@ -1,0 +1,11 @@
+{
+  "name": "recovery/bugbot",
+  "version": "1.0.0",
+  "summary": "Code review enforcement rules: global checks (env vars, logging, error handling, immutability) plus layer-specific rules for app, api, application, components, domain, lib, persistence, and services",
+  "private": true,
+  "steering": {
+    "bugbot": {
+      "rules": "rules/bugbot.md"
+    }
+  }
+}

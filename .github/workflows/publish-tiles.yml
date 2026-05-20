@@ -1,0 +1,25 @@
+name: Publish Tessl Tiles
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tessl/**'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Tessl CLI
+        run: curl -fsSL https://get.tessl.io | sh
+
+      - name: Publish tiles
+        env:
+          TESSL_API_KEY: ${{ secrets.TESSL_API_KEY }}
+        run: |
+          for tile in tessl/*/; do
+            echo "Publishing $tile..."
+            tessl tile publish "$tile" --workspace recovery --bump patch
+          done

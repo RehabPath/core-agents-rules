@@ -1,13 +1,4 @@
----
-root: false
-targets: ["cursor", "claudecode"]
-description: "Unit testing conventions"
-globs: ["**/*.test.js", "**/*.test.ts", "**/*.spec.js", "**/*.spec.ts"]
-cursor:
-  alwaysApply: false
-  description: "Unit testing conventions"
-  globs: ["**/*.test.js", "**/*.test.ts", "**/*.spec.js", "**/*.spec.ts"]
----
+## Unit Testing
 
 # Unit tests
 
@@ -15,7 +6,7 @@ Unit tests are the smallest tests to write. They test a specific piece of the co
 
 ## Standards
 
-### "describe" and "it"
+### “describe” and “it”
 
 - Tests should be meaningful.
 - Use describe to name the function or object under test that you are about to test.
@@ -34,9 +25,9 @@ describe('capitalize', () => {
 })
 ```
 
-The above could be read as "capitalize, given a non empty string, should produce a capitalized string from the string argument."
+The above could be read as “capitalize, given a non empty string, should produce a capitalized string from the string argument.”
 
-### "expect"
+### “expect”
 
 - Use expect to assert the result of the test.
 - Use a nested expect to assert the result of the test.
@@ -47,7 +38,7 @@ Example:
 expect(capitalize('some string')).toEqual('SOME STRING')
 ```
 
-### "beforeEach" and "afterEach"
+### “beforeEach” and “afterEach”
 
 - Use beforeEach to run code before each test.
 - Use afterEach to run code after each test.
@@ -256,14 +247,14 @@ describe('negative test cases with boundary conditions', () => {
 
 For any validation or checking function, include tests for:
 
-- Negative numbers
-- Zero (when invalid)
-- NaN
-- Infinity and -Infinity
-- Wrong data types (string, object, array, boolean)
-- Null and undefined
-- Boundary conditions (one above/below thresholds)
-- Combined invalid conditions
+- ✅ Negative numbers
+- ✅ Zero (when invalid)
+- ✅ NaN
+- ✅ Infinity and -Infinity
+- ✅ Wrong data types (string, object, array, boolean)
+- ✅ Null and undefined
+- ✅ Boundary conditions (one above/below thresholds)
+- ✅ Combined invalid conditions
 
 ## Type Safety in Tests
 
@@ -312,4 +303,112 @@ Example:
 // src/components/Button.test.ts
 ```
 
-After writing tests, always run `yarn test` to ensure the tests are passing.
+After writing tests, always run `pnpm test` to ensure the tests are passing.
+
+---
+
+## Utility Function Testing Patterns
+
+# Utility Function Testing Patterns
+
+Extends the general the Unit Testing section in the `recovery/testing` tile guidelines with specific patterns for utility functions.
+
+## Type Guard Testing Structure
+
+### Comprehensive Coverage Pattern
+
+For type checking functions like `isBlank`, `isString`, etc., use this structure:
+
+```typescript
+describe('functionName', () => {
+  describe('given {condition that should return true}', () => {
+    it('should return true', () => {
+      // Test cases that should pass
+    })
+  })
+
+  describe('given {condition that should return false}', () => {
+    it('should return false', () => {
+      // Test cases that should fail
+    })
+  })
+})
+```
+
+### Example: Complete Type Guard Test
+
+```typescript
+describe('isBlank', () => {
+  describe('given null or undefined values', () => {
+    it('should return true', () => {
+      expect(isBlank(null)).toBe(true)
+      expect(isBlank(undefined)).toBe(true)
+      expect(isBlank()).toBe(true)
+    })
+  })
+
+  describe('given empty strings', () => {
+    it('should return true', () => {
+      expect(isBlank('')).toBe(true)
+      expect(isBlank(' ')).toBe(true)
+      expect(isBlank('\t')).toBe(true)
+    })
+  })
+
+  describe('given non-empty values', () => {
+    it('should return false', () => {
+      expect(isBlank('hello')).toBe(false)
+      expect(isBlank(0)).toBe(false)
+      expect(isBlank(false)).toBe(false)
+    })
+  })
+})
+```
+
+## Test Case Categories
+
+### Required Test Categories for Type Guards
+
+1. **Positive Cases**: Values that should return `true`
+2. **Negative Cases**: Values that should return `false`
+3. **Edge Cases**: Boundary values, special characters
+4. **Type Boundaries**: Different JavaScript types
+
+### Edge Cases to Always Test
+
+- Empty string (`''`)
+- Whitespace strings (`' '`, `'\t'`, `'\n'`)
+- Zero (`0`)
+- False (`false`)
+- Empty arrays (`[]`)
+- Empty objects (`{}`)
+- `NaN`
+- `null` and `undefined`
+
+## Import Organization
+
+Keep imports clean and organized:
+
+```typescript
+// Good - Clean import organization
+import { isNull, isUndefined, isBlank, isString } from './checks'
+
+// Avoid importing unused functions
+```
+
+## Test Data Patterns
+
+### Use Representative Test Data
+
+Choose test data that represents real-world usage:
+
+```typescript
+// Good - Real-world representative data
+expect(isBlank('hello world')).toBe(false)
+expect(isBlank(' trimmed ')).toBe(false)
+
+// Good - Edge cases that matter
+expect(isBlank('\u00A0')).toBe(true) // non-breaking space
+```
+
+This ensures utility functions work correctly in actual application scenarios.
