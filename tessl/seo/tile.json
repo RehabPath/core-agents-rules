@@ -1,11 +1,9 @@
 {
   "name": "recovery/seo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "summary": "SEO guidelines: canonical URLs, meta tags, social metadata, link semantics, schema markup, server-side rendering, and heading structure",
   "private": true,
   "steering": {
-    "seo": {
-      "rules": "rules/seo.md"
-    }
+    "seo-guidelines": { "rules": "rules/seo-guidelines.md" }
   }
 }

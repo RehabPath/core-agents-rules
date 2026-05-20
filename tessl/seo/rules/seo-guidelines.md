@@ -1,4 +1,3 @@
-## SEO Guidelines
 
 ### Canonical URLs
 

@@ -1,11 +1,13 @@
 {
   "name": "recovery/workflows",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "summary": "Team workflows: bug-fixing process, code review checklist, GitHub PR creation, Shape Up to Linear conversion, and ticket creation",
   "private": true,
   "steering": {
-    "workflows": {
-      "rules": "rules/workflows.md"
-    }
+    "bug-workflow": { "rules": "rules/bug-workflow.md" },
+    "code-review": { "rules": "rules/code-review.md" },
+    "github-pr-creation": { "rules": "rules/github-pr-creation.md" },
+    "shape-up-to-linear": { "rules": "rules/shape-up-to-linear.md" },
+    "single-ticket": { "rules": "rules/single-ticket.md" }
   }
 }

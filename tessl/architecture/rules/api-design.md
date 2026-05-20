@@ -1,0 +1,555 @@
+
+## Architecture
+
+Five layers, each with a single responsibility:
+
+| Layer              | Location           | Knows about                                  |
+| ------------------ | ------------------ | -------------------------------------------- |
+| **HTTP layer**     | `src/app/api/`     | Requests, responses, auth context            |
+| **Application**    | `src/application/` | Orchestration across domains and persistence |
+| **Domain**         | `src/domain/`      | Types, constants, pure business rules        |
+| **Persistence**    | `src/persistence/` | DTOs, Prisma queries, data mapping           |
+| **Infrastructure** | `src/lib/`         | Prisma client, env, response helpers, policy |
+
+**The golden rule: dependencies only flow downward.**
+
+- Route handlers import from application, domain, persistence, and lib
+- Application imports from domain, persistence, and lib
+- Domain imports from lib only (pure types and use cases — no I/O)
+- Persistence imports from lib and domain (types only)
+- Lib imports nothing from your app
+
+Prisma never appears in `src/app/api/`. HTTP concepts (`NextResponse`, status codes) never appear in domain, persistence, or application layers.
+
+---
+
+## Auth Responsibility Split
+
+| Layer            | Responsibility                                     | Failure response             |
+| ---------------- | -------------------------------------------------- | ---------------------------- |
+| `middleware.ts`  | Protect **pages** — redirect unauthenticated users | Redirect to appropriate page |
+| `routeHandler`   | Protect **API endpoints** — resolve identity       | `401` / `403` JSON           |
+| **Domain layer** | Enforce **business rules**                         | Throws domain errors         |
+
+---
+
+## Folder Structure
+
+```
+src/
+  domain/
+    posts/
+      posts.model.ts        ← TypeScript types
+      const.ts              ← Constants and enums
+      use-cases/
+        createPost.ts       ← Pure business-rule functions
+        validatePost.ts
+    users/
+      user.ts
+      const.ts
+      use-cases/
+  persistence/
+    posts/
+      posts.dto.ts          ← Zod DTOs for validation
+      posts.persistence.ts  ← Prisma queries + data mapping
+  application/
+    posts/
+      createPost.ts         ← Orchestrates domain + persistence
+  lib/
+    prisma.client.ts        ← Prisma singleton (exists)
+    apiResponse.ts          ← Response shape helpers (to be created)
+    errors.ts               ← Domain error classes (to be created)
+    policy.ts               ← Ownership checks (to be created)
+    routeHandler.ts         ← Central wrapper (to be created)
+  app/
+    api/
+      posts/
+        route.ts            ← Thin coordinator
+        [id]/
+          route.ts
+middleware.ts
+```
+
+---
+
+## `src/lib/errors.ts` — Domain Errors
+
+Typed errors that the domain and persistence layers throw. The `routeHandler` catches these and maps them to HTTP responses — keeping HTTP concerns out of your domain entirely.
+
+```ts
+export class NotFoundError extends Error {
+  constructor(message = 'Not found') {
+    super(message)
+    this.name = 'NotFoundError'
+  }
+}
+
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'ValidationError'
+  }
+}
+
+export class ForbiddenError extends Error {
+  constructor(message = 'Forbidden') {
+    super(message)
+    this.name = 'ForbiddenError'
+  }
+}
+```
+
+---
+
+## `src/lib/apiResponse.ts` — Consistent Response Shapes
+
+```ts
+import { NextResponse } from 'next/server'
+
+export type ApiSuccess<T> = { data: T; error: null }
+export type ApiError = { data: null; error: string }
+
+export const successResponse = <T>(data: T, status = 200) =>
+  NextResponse.json<ApiSuccess<T>>({ data, error: null }, { status })
+
+export const errorResponse = (message: string, status = 400) =>
+  NextResponse.json<ApiError>({ data: null, error: message }, { status })
+
+export const notFound = (msg = 'Not found') => errorResponse(msg, 404)
+export const unauthorized = (msg = 'Unauthorized') => errorResponse(msg, 401)
+export const forbidden = (msg = 'Forbidden') => errorResponse(msg, 403)
+export const serverError = (msg = 'Internal server error') =>
+  errorResponse(msg, 500)
+export const validationError = (msg: string) => errorResponse(msg, 422)
+```
+
+## `src/lib/policy.ts` — Auth Context & Ownership
+
+```ts
+import { auth } from '@clerk/nextjs/server'
+import { unauthorized, forbidden } from '@/lib/apiResponse'
+
+export interface AuthContext {
+  userId: string
+}
+
+export async function getAuthContext(): Promise<AuthContext | Response> {
+  const { userId } = await auth()
+  if (!userId) return unauthorized()
+  return { userId }
+}
+
+export function assertOwner(
+  ctx: AuthContext,
+  resourceUserId: string
+): Response | null {
+  if (ctx.userId === resourceUserId) return null
+  return forbidden()
+}
+```
+
+---
+
+## `src/lib/routeHandler.ts` — The Central Wrapper
+
+Handles auth, body validation, and error mapping in one place. Domain errors thrown by use cases and persistence are caught here and converted to HTTP responses.
+
+```ts
+import { NextRequest } from 'next/server'
+import { ZodSchema } from 'zod'
+import { getAuthContext, AuthContext } from '@/lib/policy'
+import {
+  validationError,
+  serverError,
+  errorResponse,
+  notFound,
+  forbidden
+} from '@/lib/apiResponse'
+import { NotFoundError, ValidationError, ForbiddenError } from '@/lib/errors'
+import { Prisma } from '@/app/generated/prisma/client'
+import { logger } from '@/utils/logger'
+
+type RouteParams = Record<string, string>
+
+interface HandlerContext<TBody, TParams extends RouteParams> {
+  req: NextRequest
+  params: TParams
+  body: TBody
+  auth: AuthContext | undefined
+}
+
+interface RouteHandlerOptions<TBody, TParams extends RouteParams> {
+  protected?: boolean
+  bodySchema?: ZodSchema<TBody>
+  handler: (ctx: HandlerContext<TBody, TParams>) => Promise<Response>
+}
+
+export function routeHandler<
+  TBody = never,
+  TParams extends RouteParams = RouteParams
+>(options: RouteHandlerOptions<TBody, TParams>) {
+  const { protected: requireAuth = true, bodySchema, handler } = options
+
+  return async (
+    req: NextRequest,
+    ctx: { params: Promise<TParams> }
+  ): Promise<Response> => {
+    try {
+      // 1. Auth
+      let authCtx: AuthContext | undefined
+      if (requireAuth) {
+        const result = await getAuthContext()
+        if (result instanceof Response) return result
+        authCtx = result
+      }
+
+      // 2. Params
+      const params = await ctx.params
+
+      // 3. Body validation
+      let body = undefined as TBody
+      if (bodySchema) {
+        const raw = await req.json().catch(() => null)
+        const parsed = bodySchema.safeParse(raw)
+        if (!parsed.success)
+          return validationError(parsed.error.errors[0].message)
+        body = parsed.data
+      }
+
+      // 4. Run handler
+      return await handler({ req, params, body, auth: authCtx })
+    } catch (error) {
+      // Domain errors — thrown by services, mapped to HTTP here
+      if (error instanceof NotFoundError) return notFound(error.message)
+      if (error instanceof ValidationError)
+        return validationError(error.message)
+      if (error instanceof ForbiddenError) return forbidden(error.message)
+
+      // Prisma errors
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') return errorResponse('Already exists', 409)
+        if (error.code === 'P2025') return notFound()
+      }
+
+      logger.error({
+        message: `Unhandled API error: ${req.method} ${req.nextUrl.pathname}`,
+        error: error instanceof Error ? error : undefined
+      })
+      return serverError()
+    }
+  }
+}
+```
+
+---
+
+## Layer Patterns
+
+### Domain — `src/domain/{entity}/`
+
+Domain entities hold types, constants, and pure use-case functions (no I/O, no Prisma). This matches the existing codebase pattern.
+
+```
+src/domain/posts/
+  posts.model.ts    ← Types
+  const.ts          ← Constants
+  use-cases/
+    validatePostSchedule.ts
+```
+
+```ts
+// src/domain/posts/use-cases/validatePostSchedule.ts
+import { ValidationError } from '@/lib/errors'
+
+export function validatePostSchedule(scheduledAt: Date | undefined): void {
+  if (scheduledAt && scheduledAt < new Date()) {
+    throw new ValidationError('Cannot schedule a post in the past')
+  }
+}
+```
+
+### Persistence — `src/persistence/{entity}/`
+
+Persistence functions handle all Prisma queries. They return DTOs and throw domain errors when records are missing.
+
+```
+src/persistence/posts/
+  posts.dto.ts            ← Zod schemas and inferred types
+  posts.persistence.ts    ← Prisma queries
+```
+
+```ts
+// src/persistence/posts/posts.dto.ts
+import { z } from 'zod'
+
+export const createPostDto = z.object({
+  title: z.string().min(1).max(200),
+  content: z.string().min(1),
+  scheduledAt: z.coerce.date().optional()
+})
+
+export const updatePostDto = createPostDto.partial()
+
+export type CreatePostDto = z.infer<typeof createPostDto>
+export type UpdatePostDto = z.infer<typeof updatePostDto>
+```
+
+```ts
+// src/persistence/posts/posts.persistence.ts
+import 'server-only'
+
+import { prisma } from '@/lib/prisma.client'
+import { NotFoundError } from '@/lib/errors'
+import type { CreatePostDto, UpdatePostDto } from './posts.dto'
+
+export async function findPostsByUserId(userId: string) {
+  return prisma.post.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' }
+  })
+}
+
+export async function findPostOrThrow(id: string) {
+  const post = await prisma.post.findUnique({ where: { id } })
+  if (!post) throw new NotFoundError('Post not found')
+  return post
+}
+
+export async function createPost(userId: string, data: CreatePostDto) {
+  return prisma.post.create({ data: { ...data, userId } })
+}
+
+export async function updatePost(id: string, data: UpdatePostDto) {
+  return prisma.post.update({ where: { id }, data })
+}
+
+export async function deletePost(id: string) {
+  return prisma.post.delete({ where: { id } })
+}
+```
+
+### Application — `src/application/{entity}/` (when needed)
+
+Use the application layer when a route needs to orchestrate across multiple domains or persistence modules. Skip it for simple CRUD — route handlers can call persistence and domain use cases directly.
+
+```ts
+// src/application/posts/createPost.ts
+import { validatePostSchedule } from '@/domain/posts/use-cases/validatePostSchedule'
+import { createPost as persistPost } from '@/persistence/posts/posts.persistence'
+import type { CreatePostDto } from '@/persistence/posts/posts.dto'
+
+export async function createPost(userId: string, data: CreatePostDto) {
+  validatePostSchedule(data.scheduledAt)
+  return persistPost(userId, data)
+}
+```
+
+---
+
+## Route Handler Examples
+
+Route handlers are thin coordinators: parse → check ownership → call persistence/use cases → respond. No Prisma, no business logic.
+
+### Collection Route — `src/app/api/posts/route.ts`
+
+```ts
+import { routeHandler } from '@/lib/routeHandler'
+import { successResponse } from '@/lib/apiResponse'
+import { findPostsByUserId } from '@/persistence/posts/posts.persistence'
+import { createPost } from '@/application/posts/createPost'
+import { createPostDto } from '@/persistence/posts/posts.dto'
+
+export const GET = routeHandler({
+  handler: async ({ auth }) => {
+    const posts = await findPostsByUserId(auth!.userId)
+    return successResponse(posts)
+  }
+})
+
+export const POST = routeHandler({
+  bodySchema: createPostDto,
+  handler: async ({ body, auth }) => {
+    const post = await createPost(auth!.userId, body)
+    return successResponse(post, 201)
+  }
+})
+```
+
+### Resource Route — `src/app/api/posts/[id]/route.ts`
+
+```ts
+import { routeHandler } from '@/lib/routeHandler'
+import { successResponse } from '@/lib/apiResponse'
+import { assertOwner } from '@/lib/policy'
+import {
+  findPostOrThrow,
+  updatePost,
+  deletePost
+} from '@/persistence/posts/posts.persistence'
+import { updatePostDto } from '@/persistence/posts/posts.dto'
+
+export const GET = routeHandler({
+  handler: async ({ params, auth }) => {
+    const post = await findPostOrThrow(params.id)
+
+    const denied = assertOwner(auth!, post.userId)
+    if (denied) return denied
+
+    return successResponse(post)
+  }
+})
+
+export const PATCH = routeHandler({
+  bodySchema: updatePostDto,
+  handler: async ({ params, body, auth }) => {
+    const post = await findPostOrThrow(params.id)
+
+    const denied = assertOwner(auth!, post.userId)
+    if (denied) return denied
+
+    const updated = await updatePost(params.id, body)
+    return successResponse(updated)
+  }
+})
+
+export const DELETE = routeHandler({
+  handler: async ({ params, auth }) => {
+    const post = await findPostOrThrow(params.id)
+
+    const denied = assertOwner(auth!, post.userId)
+    if (denied) return denied
+
+    await deletePost(params.id)
+    return successResponse({ deleted: true })
+  }
+})
+```
+
+### Public Route
+
+```ts
+export const GET = routeHandler({
+  protected: false,
+  handler: async () => {
+    const posts = await findFeaturedPosts()
+    return successResponse(posts)
+  }
+})
+```
+
+### Optional Auth — public but personalized
+
+```ts
+export const GET = routeHandler({
+  protected: false,
+  handler: async ({ auth }) => {
+    const posts = await findFeaturedPosts()
+
+    if (auth) {
+      // enhance response for authenticated users
+    }
+
+    return successResponse(posts)
+  }
+})
+```
+
+---
+
+## `middleware.ts` — Page Protection Only
+
+API routes are never mentioned here.
+
+```ts
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+
+const isProtectedPage = createRouteMatcher([
+  '/dashboard(.*)',
+  '/settings(.*)',
+  '/profile(.*)'
+])
+
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedPage(req)) await auth.protect()
+})
+
+export const config = {
+  matcher: ['/((?!_next|.*\\..*).*)']
+}
+```
+
+---
+
+## Extending the Policy Later
+
+Add new assert functions to `lib/policy.ts` — nothing else changes.
+
+```ts
+export function assertMember(
+  ctx: AuthContext,
+  memberUserIds: string[]
+): Response | null {
+  if (memberUserIds.includes(ctx.userId)) return null
+  return forbidden()
+}
+
+export function assertOwnerForMutation(
+  ctx: AuthContext,
+  resourceUserId: string,
+  method: string
+): Response | null {
+  if (['PATCH', 'PUT', 'DELETE'].includes(method)) {
+    return assertOwner(ctx, resourceUserId)
+  }
+  return null
+}
+```
+
+---
+
+## Rules Summary for Cursor
+
+**Architecture**
+
+- Route handlers import from persistence, domain, application, and lib — never import Prisma directly in `src/app/api/`
+- Domain use cases are pure functions with no I/O — they live in `src/domain/{entity}/use-cases/`
+- Persistence functions own all Prisma queries — they live in `src/persistence/{entity}/`
+- Application functions orchestrate across domains and persistence — use only when needed
+- No cross-domain imports — each domain folder owns its types, constants, and use cases
+
+**Route handlers**
+
+- Every new handler uses `routeHandler()` — no raw async functions exported directly
+- `protected: false` must be explicit for public routes — auth is on by default
+- On protected routes, `auth` is always `AuthContext` — use `auth!.userId` confidently
+- On public routes, `auth` is `undefined` — always null-check before using it
+- Route handlers only do: resolve auth → check ownership → call persistence/domain/application → return response
+
+**Persistence**
+
+- All Prisma queries live in `src/persistence/{entity}/{entity}.persistence.ts`
+- DTOs (Zod schemas) live in `src/persistence/{entity}/{entity}.dto.ts`
+- Persistence functions throw `NotFoundError` when records are missing
+- Import Prisma as `import { prisma } from '@/lib/prisma.client'`
+
+**Domain use cases**
+
+- Pure functions — no Prisma, no HTTP, no side effects
+- Throw domain errors (`NotFoundError`, `ValidationError`, `ForbiddenError`) for rule violations
+- `routeHandler` catches domain errors and maps them to HTTP — use cases stay HTTP-agnostic
+
+**Ownership**
+
+- Always call `assertOwner` before returning or mutating a record
+- Scope all list queries with `where: { userId }` in persistence — never return another user's records
+- All assert functions return `Response | null` — always check `if (denied) return denied`
+- `userId` on Prisma models is always a plain string (Clerk user ID) — never a foreign key relation
+
+**Logging**
+
+- Always use `logger` from `@/utils/logger` — never use `console.error` or `console.log`
+- Use `logger.error` only for fatal errors; use `logger.warn` for non-fatal issues
+
+**Existing routes**
+
+- All API routes use the `routeHandler()` pattern — no legacy raw async function exports remain

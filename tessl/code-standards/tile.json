@@ -1,11 +1,14 @@
 {
   "name": "recovery/code-standards",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "summary": "TypeScript/JavaScript code style, utility check functions, immutability, logging, and barrel file conventions",
   "private": true,
   "steering": {
-    "code-standards": {
-      "rules": "rules/code-standards.md"
-    }
+    "js-style-guide": { "rules": "rules/js-style-guide.md" },
+    "use-utility-checks": { "rules": "rules/use-utility-checks.md" },
+    "utility-checks-functions": { "rules": "rules/utility-checks-functions.md" },
+    "immutability": { "rules": "rules/immutability.md" },
+    "logging": { "rules": "rules/logging.md" },
+    "barrel-files": { "rules": "rules/barrel-files.md" }
   }
 }

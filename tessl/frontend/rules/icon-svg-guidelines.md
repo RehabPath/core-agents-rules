@@ -1,0 +1,101 @@
+
+# Icon SVG Guidelines
+
+## viewBox
+
+Every custom SVG icon **must** include a valid `viewBox` attribute. Without it the browser falls back to the SVG's intrinsic `width`/`height` (or a default 300 × 150), which causes icons to render too large, get cropped, or overflow their container.
+
+### Rules
+
+- Every custom SVG icon must include a valid `viewBox`.
+- Never use a custom SVG icon without a `viewBox`.
+- Verify exported SVGs before implementation; do not assume design-tool exports are safe by default.
+- Size custom SVG icons through the component or wrapper, not the asset's intrinsic dimensions.
+- If an icon renders too large, cropped, or outside its container, inspect the `viewBox` first.
+
+### Bad
+
+```tsx
+// Missing viewBox — size is unpredictable, may overflow container
+export const IconStar: FC<IconStarProps> = ({ size = 'md', className }) => (
+  <svg
+    className={`shrink-0 ${className ?? sizeClassName[size]}`}
+    xmlns="http://www.w3.org/2000/svg"
+    fill="currentColor"
+    aria-hidden="true"
+    role="img"
+  >
+    <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" />
+  </svg>
+)
+
+// Intrinsic dimensions baked into the SVG — ignores component sizing
+<svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
+  <path d="..." />
+</svg>
+```
+
+### Good
+
+```tsx
+// viewBox present, sized via component props
+export const IconStar: FC<IconStarProps> = ({ size = 'md', className }) => (
+  <svg
+    className={`shrink-0 ${className ?? sizeClassName[size]}`}
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="currentColor"
+    aria-hidden="true"
+    role="img"
+  >
+    <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z" />
+  </svg>
+)
+```
+
+## Stroke Width
+
+Lucide icons use `viewBox="0 0 24 24"` but render at smaller sizes (e.g., 16px). The viewBox-to-pixel transformation scales strokes proportionally:
+
+> `rendered_stroke = stroke-width × (rendered_size / 24)`
+
+A `stroke-width: 1.5` at 16px renders as `1.5 × (16/24) ≈ 1px` on screen — thinner than intended.
+
+### The Fix
+
+Always apply **both** CSS properties together:
+
+1. `stroke-width` in **px units** — absolute CSS pixels, not SVG user units
+2. `vector-effect: non-scaling-stroke` on child elements (`path`, `line`, etc.) — keeps the stroke at true screen pixels regardless of viewBox scaling
+
+### Tailwind Pattern
+
+Apply arbitrary-value classes directly on the Lucide component (or a parent wrapper):
+
+```tsx
+<ChevronDown className="size-4 [&_*]:[stroke-width:1.25px] [&_*]:[vector-effect:non-scaling-stroke]" />
+```
+
+`[&_*]` targets all SVG child elements so both properties reach `<path>`, `<line>`, and `<circle>` elements inside the icon.
+
+### Bad
+
+```tsx
+// Unitless stroke-width — still scales with viewBox
+<ChevronDown strokeWidth={1.25} />
+
+// px on the <svg> root only — child paths may not inherit
+<ChevronDown className="[stroke-width:1.25px]" />
+```
+
+### Good
+
+```tsx
+// Both rules on child elements — stroke renders at exactly 1.25px
+<ChevronDown className="size-4 [&_*]:[stroke-width:1.25px] [&_*]:[vector-effect:non-scaling-stroke]" />
+
+// Same pattern from a parent wrapper
+<button className="[&_svg_*]:[stroke-width:1.5px] [&_svg_*]:[vector-effect:non-scaling-stroke]">
+  <ChevronDown className="size-4" />
+</button>
+```
