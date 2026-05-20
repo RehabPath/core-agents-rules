@@ -1,4 +1,4 @@
-# core-llm-rules
+# core-agents-rules
 
 Shared AI assistant rules for Cursor and Claude Code, distributed as [Tessl](https://tessl.io) tiles.
 
