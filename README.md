@@ -137,7 +137,7 @@ The agent treats them as additive. If the same topic appears in both, deduplicat
 | Workflow | Trigger | Action |
 |----------|---------|--------|
 | `validate-tiles.yml` | PR touching `tessl/**` | `tessl tile lint` all tiles |
-| `publish-tiles.yml` | Push to `main` touching `tessl/**` | `tessl tile publish --bump patch` all tiles |
+| `publish-tiles.yml` | Push to `main` touching `tessl/**` | Lints then publishes only the changed tiles |
 | `notify-slack.yml` | Push to `main` touching `tessl/**` | Posts changed tile names to Slack |
 
 The `publish-tiles.yml` workflow requires a `TESSL_API_KEY` secret:

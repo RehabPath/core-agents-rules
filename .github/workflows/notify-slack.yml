@@ -20,9 +20,9 @@ jobs:
       - name: Get changed tiles
         id: changes
         run: |
-          ADDED=$(git diff --name-only --diff-filter=A HEAD~1 HEAD -- 'tessl/**/rules/*.md' | sed 's|tessl/||;s|/rules/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
-          MODIFIED=$(git diff --name-only --diff-filter=M HEAD~1 HEAD -- 'tessl/**/rules/*.md' | sed 's|tessl/||;s|/rules/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
-          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- 'tessl/**/rules/*.md' | sed 's|tessl/||;s|/rules/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
+          ADDED=$(git diff --name-only --diff-filter=A HEAD~1 HEAD -- 'tessl/**' | grep '^tessl/' | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
+          MODIFIED=$(git diff --name-only --diff-filter=M HEAD~1 HEAD -- 'tessl/**' | grep '^tessl/' | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
+          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- 'tessl/**' | grep '^tessl/' | sed 's|tessl/||;s|/.*||' | sort -u | tr '\n' ', ' | sed 's/,$//')
 
           echo "added=$ADDED" >> $GITHUB_OUTPUT
           echo "modified=$MODIFIED" >> $GITHUB_OUTPUT

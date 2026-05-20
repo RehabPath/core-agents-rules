@@ -11,15 +11,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Install Tessl CLI
         run: curl -fsSL https://get.tessl.io | sh
 
-      - name: Publish tiles
+      - name: Detect changed tiles
+        id: changed
+        run: |
+          TILES=$(git diff --name-only HEAD~1 HEAD -- 'tessl/**' \
+            | grep '^tessl/' \
+            | sed 's|tessl/||;s|/.*||' \
+            | sort -u \
+            | tr '\n' ' ')
+          echo "tiles=$TILES" >> $GITHUB_OUTPUT
+          echo "Changed tiles: $TILES"
+
+      - name: Lint changed tiles
+        run: |
+          for tile in ${{ steps.changed.outputs.tiles }}; do
+            echo "Linting tessl/$tile..."
+            tessl tile lint "tessl/$tile/"
+          done
+
+      - name: Publish changed tiles
         env:
           TESSL_API_KEY: ${{ secrets.TESSL_API_KEY }}
         run: |
-          for tile in tessl/*/; do
-            echo "Publishing $tile..."
-            tessl tile publish "$tile" --bump patch
+          for tile in ${{ steps.changed.outputs.tiles }}; do
+            echo "Publishing tessl/$tile..."
+            tessl tile publish "tessl/$tile/"
           done
