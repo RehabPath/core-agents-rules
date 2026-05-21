@@ -25,5 +25,8 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Tessl CLI
+        run: curl -fsSL https://get.tessl.io | sh
+
       - name: Validate Tessl tiles and formatting
         run: pnpm lint
