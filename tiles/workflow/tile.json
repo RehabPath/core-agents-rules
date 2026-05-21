@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "summary": "Workflow, review, and process rules",
   "private": true,
-  "rules": {
+  "steering": {
     "github-pr-creation": {
       "rules": "rules/github-pr-creation.md"
     },

@@ -1,13 +1,7 @@
-## <<<<<<<< HEAD:tiles/workflow/rules/single-ticket-creation.md
-
+---
 description: Single Linear ticket creation rules
 alwaysApply: false
-
 ---
-
-========
-
-> > > > > > > > origin/main:tessl/workflows/rules/single-ticket.md
 
 # Single Linear Ticket Creation Rules
 

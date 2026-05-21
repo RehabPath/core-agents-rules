@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "summary": "Architecture and layering guidance",
   "private": true,
-  "rules": {
+  "steering": {
     "domain-vs-application-layer": {
       "rules": "rules/domain-vs-application-layer.md"
     },

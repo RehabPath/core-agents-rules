@@ -1,10 +1,6 @@
-## <<<<<<<< HEAD:tiles/style-and-conventions/rules/logging-guidelines.md
-
-## alwaysApply: true
-
-========
-
-> > > > > > > > origin/main:tessl/code-standards/rules/logging.md
+---
+alwaysApply: true
+---
 
 Always use the `logger` utility function to log messages.
 The logger utility function is defined in `src/utils/logger/index.ts`.

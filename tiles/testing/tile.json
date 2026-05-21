@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "summary": "Testing standards and patterns",
   "private": true,
-  "rules": {
+  "steering": {
     "unit-test": {
       "rules": "rules/unit-test.md"
     },

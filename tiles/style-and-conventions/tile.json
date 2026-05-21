@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "summary": "General coding style and conventions",
   "private": true,
-  "rules": {
+  "steering": {
     "js-style-guide": {
       "rules": "rules/js-style-guide.md"
     },

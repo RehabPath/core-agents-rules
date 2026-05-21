@@ -1,5 +1,5 @@
 ---
-globs: **/*.test.js,**/*.test.ts,**/*.spec.js,**/*.spec.ts
+globs: **/*.test.ts,**/*.test.tsx
 alwaysApply: false
 ---
 

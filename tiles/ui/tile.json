@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "summary": "UI and frontend specific rules",
   "private": true,
-  "rules": {
+  "steering": {
     "html-accessibility": {
       "rules": "rules/html-accessibility.md"
     },
@@ -21,6 +21,9 @@
     },
     "seo-guidelines": {
       "rules": "rules/seo-guidelines.md"
+    },
+    "core-components": {
+      "rules": "rules/core-components.md"
     }
   }
 }
