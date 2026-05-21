@@ -6,8 +6,8 @@
   "scripts": {
     "lint": "pnpm lint:tiles && pnpm format:check",
     "lint:tiles": "tessl tile lint tiles/style-and-conventions && tessl tile lint tiles/ui && tessl tile lint tiles/testing && tessl tile lint tiles/architecture && tessl tile lint tiles/workflow",
-    "format": "prettier --write README.md package.json tessl.json .cursor/mcp.json .github/workflows/*.yml tiles/**/*.md tiles/**/*.json",
-    "format:check": "prettier --check README.md package.json tessl.json .cursor/mcp.json .github/workflows/*.yml tiles/**/*.md tiles/**/*.json",
+    "format": "prettier --write README.md package.json tessl.json .github/workflows/*.yml tiles/**/*.md tiles/**/*.json",
+    "format:check": "prettier --check README.md package.json tessl.json .github/workflows/*.yml tiles/**/*.md tiles/**/*.json",
     "pre-commit": "lint-staged",
     "prepare": "husky"
   },
