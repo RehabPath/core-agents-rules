@@ -1,6 +1,6 @@
 {
   "name": "recovery/testing",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "summary": "Testing standards and patterns",
   "private": true,
   "steering": {
@@ -9,6 +9,11 @@
     },
     "utility-checks-testing": {
       "rules": "rules/utility-checks-testing.md"
+    }
+  },
+  "skills": {
+    "add-utility-check": {
+      "path": "skills/add-utility-check/SKILL.md"
     }
   }
 }

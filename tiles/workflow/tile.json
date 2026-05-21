@@ -1,6 +1,6 @@
 {
   "name": "recovery/workflow",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "summary": "Workflow, review, and process rules",
   "private": true,
   "steering": {
@@ -26,6 +26,15 @@
     },
     "code-reviewer": {
       "path": "skills/code-reviewer/SKILL.md"
+    },
+    "create-linear-ticket": {
+      "path": "skills/create-linear-ticket/SKILL.md"
+    },
+    "pitch-to-linear": {
+      "path": "skills/pitch-to-linear/SKILL.md"
+    },
+    "debug-and-fix": {
+      "path": "skills/debug-and-fix/SKILL.md"
     }
   }
 }

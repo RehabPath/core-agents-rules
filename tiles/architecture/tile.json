@@ -1,6 +1,6 @@
 {
   "name": "recovery/architecture",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "summary": "Architecture and layering guidance",
   "private": true,
   "steering": {
@@ -18,6 +18,11 @@
     },
     "dependency-placement": {
       "rules": "rules/dependency-placement.md"
+    }
+  },
+  "skills": {
+    "create-component": {
+      "path": "skills/create-component/SKILL.md"
     }
   }
 }
