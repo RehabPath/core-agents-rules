@@ -1,11 +1,11 @@
 ---
-description: Rules for using @rehabpath/core-components — what to import from the library vs local equivalents
+description: Rules for using the core-components shared library — what to import from the library vs local equivalents
 alwaysApply: true
 ---
 
-# @rehabpath/core-components Usage
+# Core Components Library Usage
 
-`@rehabpath/core-components` is an internal shared library (published to GitHub Packages) providing UI components, utilities, and design tokens. It is built on Tailwind CSS v4, shadcn/ui (New York style), and Radix UI.
+The core-components library (`@rehabpath/core-components`) is an internal shared library (published to GitHub Packages) providing UI components, utilities, and design tokens. It is built on Tailwind CSS v4, shadcn/ui (New York style), and Radix UI.
 
 ## What the library exports
 
