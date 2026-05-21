@@ -20,16 +20,19 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Tessl CLI
-        uses: tesslio/setup-tessl@v2
+      - uses: tesslio/setup-tessl@v2
         with:
-          token: ${{ secrets.TESSL_TOKEN }}
+          # Official docs name the secret TESSL_TOKEN; TESSL_API_KEY is supported for existing repos.
+          token: ${{ secrets.TESSL_TOKEN || secrets.TESSL_API_KEY }}
 
       - name: Determine changed tiles
         id: changed

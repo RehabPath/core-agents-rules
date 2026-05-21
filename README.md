@@ -135,3 +135,62 @@ Add `recovery/ui` only for frontend projects.
 
 - Keep `.cursor/mcp.json` if you need MCP server wiring.
 - Legacy `.cursor/rules` can be removed once all repos consume Tessl tiles successfully.
+
+---
+
+## Adding or editing a rule
+
+1. Edit the relevant file in `tessl/<tile>/rules/` (one file per original rule)
+2. Bump the version in `tessl/<tile>/tile.json` (patch for content tweaks, minor for new rules)
+3. Open a PR — CI lints on the PR and auto-publishes on merge to `main`
+4. Consuming repos run `tessl update` to pull the new version
+
+---
+
+## CI / CD
+
+| Workflow             | Trigger                            | Action                                      |
+| -------------------- | ---------------------------------- | ------------------------------------------- |
+| `validate-tiles.yml` | PR touching `tessl/**`             | `tessl tile lint` all tiles                 |
+| `publish-tiles.yml`  | Push to `main` touching `tessl/**` | Lints then publishes only the changed tiles |
+| `notify-slack.yml`   | Push to `main` touching `tessl/**` | Posts changed tile names to Slack           |
+
+The `publish-tiles.yml` workflow requires a Tessl API key as a GitHub Actions secret ([docs](https://docs.tessl.io/distribute/review-and-publish-with-github-actions.md)):
+
+1. Create a key at [tessl.io/account/api-keys](https://tessl.io/account/api-keys) (or `tessl api-key create` with the CLI).
+2. Add **Settings → Secrets and variables → Actions → New repository secret** named **`TESSL_TOKEN`** (preferred; matches [setup-tessl](https://github.com/tesslio/setup-tessl)). The workflow also accepts an existing **`TESSL_API_KEY`** secret.
+
+The workflow uses [`tesslio/setup-tessl@v2`](https://github.com/tesslio/setup-tessl) to install the CLI and authenticate later steps — do not rely on passing `TESSL_API_KEY` as a step `env` alone; the CLI reads **`TESSL_TOKEN`**.
+
+---
+
+## Tile structure reference
+
+Each tile has one file per rule — this lets the agent load only the steering rules it needs:
+
+```
+tessl/
+└── <tile-name>/
+    ├── tile.json
+    └── rules/
+        ├── <rule-1>.md     ← plain Markdown, no YAML frontmatter
+        ├── <rule-2>.md
+        └── <rule-n>.md
+```
+
+`tile.json` shape:
+
+```json
+{
+  "name": "recovery/<tile-name>",
+  "version": "1.0.0",
+  "summary": "What this tile covers",
+  "private": true,
+  "steering": {
+    "<rule-1>": { "rules": "rules/<rule-1>.md" },
+    "<rule-2>": { "rules": "rules/<rule-2>.md" }
+  }
+}
+```
+
+Each key in `steering` becomes a named context block injected by the MCP server. Keeping rules in separate files makes diffs cleaner and lets tiles grow without one massive file becoming hard to review.
