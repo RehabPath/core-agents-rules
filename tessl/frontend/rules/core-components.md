@@ -1,5 +1,5 @@
 
-# Core Components Library (`@rehabpath/core-components`)
+# Core Components Library Usage
 
 `@rehabpath/core-components` is an internal shared library (published to GitHub Packages) providing UI components, utilities, and design tokens. It is built on Tailwind CSS v4, shadcn/ui (New York style), and Radix UI.
 

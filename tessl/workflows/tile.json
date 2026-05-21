@@ -1,6 +1,6 @@
 {
   "name": "recovery/workflows",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "summary": "Team workflows: bug-fixing process, code review checklist, GitHub PR creation, Shape Up to Linear conversion, and ticket creation",
   "private": true,
   "steering": {
@@ -9,5 +9,12 @@
     "github-pr-creation": { "rules": "rules/github-pr-creation.md" },
     "shape-up-to-linear": { "rules": "rules/shape-up-to-linear.md" },
     "single-ticket": { "rules": "rules/single-ticket.md" }
+  },
+  "skills": {
+    "create-linear-ticket": { "path": "skills/create-linear-ticket/SKILL.md" },
+    "pitch-to-linear": { "path": "skills/pitch-to-linear/SKILL.md" },
+    "debug-and-fix": { "path": "skills/debug-and-fix/SKILL.md" },
+    "code-reviewer": { "path": "skills/code-reviewer/SKILL.md" },
+    "create-github-pr": { "path": "skills/create-github-pr/SKILL.md" }
   }
 }
