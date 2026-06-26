@@ -156,6 +156,12 @@ Domain entities live in `src/domain/{entity}/use-cases/`. Use them everywhere da
 
 ### Next.js / React Performance
 
+When reviewing React or Next.js files, fetch the full Vercel best practices guide for detailed rule guidance:
+
+```
+https://raw.githubusercontent.com/vercel-labs/agent-skills/main/skills/react-best-practices/AGENTS.md
+```
+
 Key rules to check for (ordered by impact):
 
 **CRITICAL — Waterfalls**
