@@ -48,10 +48,6 @@ jobs:
               prBody = pr.data.body || '';
               prNumber = pr.data.number;
               branchName = pr.data.head.ref;
-              
-              // Also check the comment that was just added
-              const commentBody = context.payload.comment.body || '';
-              prBody = prBody + '\n\n' + commentBody;
             } else {
               console.log('Unsupported event type, skipping...');
               return;
