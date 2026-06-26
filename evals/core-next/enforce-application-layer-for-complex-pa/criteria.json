@@ -1,0 +1,69 @@
+{
+  "context": "Refactor complex Next.js page files to delegate data fetching and orchestration to application layer use cases, enforcing the clean architecture layering rule documented in src/app/README.md",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "pages_no_longer_import_persistence",
+      "example": "src/app/author/[slug]/page.tsx removes imports of fetchPersonBySlug and fetchArticlesByAuthor from @/persistence/person/person.persistence, replacing them with getAuthorPageData from @/application/author/getAuthorPageData",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "Page files that previously called persistence functions directly no longer import from @/persistence/* (except for the single accepted exception: composition-root pages that fetch one DTO and pass it straight to a component). Pages like author, brands, location landing, and taxonomy pages should import from @/application/* instead."
+    },
+    {
+      "name": "pages_are_thin_after_refactor",
+      "example": "src/app/author/[slug]/page.tsx default export reduces from ~80 lines to ~10 lines: resolves slug, calls getAuthorPageData(slug), calls notFound() if null, renders with the returned data",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "Affected page files contain only: param resolution, a single call to an application use case, a null/undefined check with notFound(), and rendering. They do not contain inline SEO computation, data transformations, feed assembly, or business logic branching."
+    },
+    {
+      "name": "application_use_cases_created",
+      "example": "src/application/author/getAuthorPageData.ts exports getAuthorPageData(slug) returning AuthorPageData | null; similarly for brands, location, landing, and taxonomy",
+      "category": "REUSE",
+      "max_score": 1,
+      "description": "New use case files are created in application/{feature}/ to hold the extracted orchestration logic. Each use case accepts the route parameters and returns a view model (or null when the resource does not exist)."
+    },
+    {
+      "name": "use_cases_use_react_cache",
+      "example": "getAuthorPageData.ts: const cachedFetchPerson = cache(fetchPersonBySlug); both getAuthorMetadata and getAuthorPageData call cachedFetchPerson instead of fetchPersonBySlug directly",
+      "category": "REUSE",
+      "max_score": 1,
+      "description": "Application use cases wrap persistence calls with React's cache() so that multiple calls within the same request (e.g. from generateMetadata and the page handler) deduplicate to a single fetch."
+    },
+    {
+      "name": "generate_metadata_and_page_share_use_case",
+      "example": "src/app/author/[slug]/page.tsx: generateMetadata calls getAuthorMetadata(slug), default export calls getAuthorPageData(slug); both use cachedFetchPerson internally, so the person is fetched once",
+      "category": "INTEGRATION",
+      "max_score": 1,
+      "description": "Both the generateMetadata export and the default page export call through the same application layer function (possibly separate getXxxMetadata and getXxxPageData helpers backed by the same cached fetch), so only one network call is made regardless of which Next.js function invokes first."
+    },
+    {
+      "name": "taxonomy_shared_helper_relocated",
+      "example": "src/app/(taxonomy)/taxonomyTermPage.tsx is renamed/moved to src/application/taxonomy/getTaxonomyTermPageData.ts; all 11 taxonomy pages (condition, care, approach, etc.) are updated to import from the new location",
+      "category": "INTEGRATION",
+      "max_score": 1,
+      "description": "The shared taxonomy page helper that was a non-route file inside app/ and imported directly from @/persistence/* is moved out of app/ to an appropriate layer. Non-route files inside app/ are not allowed to import from @/persistence/*."
+    },
+    {
+      "name": "not_found_called_on_missing_resource",
+      "example": "In src/app/author/[slug]/page.tsx: const data = await getAuthorPageData(slug); if (!data) notFound()",
+      "category": "EDGE_CASE",
+      "max_score": 1,
+      "description": "Pages call notFound() when the application use case returns null or otherwise indicates the resource does not exist, rather than rendering an empty page or silently failing."
+    },
+    {
+      "name": "use_case_orchestrates_multiple_sources",
+      "example": "getLocationLandingPageData.ts fetches location data, country titles, primary focus terms, and global filterable taxonomies in parallel via Promise.all, returning a single assembled view model",
+      "category": "DESIGN",
+      "max_score": 1,
+      "description": "Application use cases that previously required several persistence calls now aggregate those calls internally (using Promise.all or sequential fetches as appropriate), keeping that coordination out of the page file."
+    },
+    {
+      "name": "misplaced_template_components_relocated",
+      "example": "src/app/location/[slug]/locationLandingTemplate.tsx is moved to src/components/templates/LocationLandingTemplate/LocationLandingTemplate.tsx; updated imports in pages that reference it",
+      "category": "INTEGRATION",
+      "max_score": 1,
+      "description": "Template or async components that were incorrectly co-located inside app/ route directories are moved to src/components/templates/ where they belong as reusable components."
+    }
+  ]
+}

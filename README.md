@@ -133,6 +133,24 @@ The agent treats them as additive. If the same topic appears in both, deduplicat
 
 ---
 
+## Local development
+
+Optional tooling for working in this repo:
+
+```bash
+pnpm install        # installs prettier + sets up the Husky pre-commit hook
+pnpm lint           # lint all tiles + check formatting
+pnpm format         # auto-format Markdown/JSON with prettier
+```
+
+The pre-commit hook runs `lint-staged` to prettier-format staged Markdown/JSON; it activates after `pnpm install`. PRs to `main` must reference a Linear ticket (enforced by `linear-ticket-check.yml`).
+
+## Evals
+
+`evals/` holds evaluation scenarios (under `evals/core-next/`) used to gauge how well the rules guide an agent on real tasks from the `core-next` codebase. Each scenario bundles a `task.md`, a `scenario.json` (fixture + setup), and a `criteria.json` (grading); `commit-analysis.md` records how the scenarios were chosen.
+
+---
+
 ## CI / CD
 
 | Workflow | Trigger | Action |
@@ -140,6 +158,9 @@ The agent treats them as additive. If the same topic appears in both, deduplicat
 | `validate-tiles.yml` | PR touching `tessl/**` | `tessl tile lint` all tiles |
 | `publish-tiles.yml` | Push to `main` touching `tessl/**` | Lints then publishes only the changed tiles |
 | `notify-slack.yml` | Push to `main` touching `tessl/**` | Posts changed tile names to Slack |
+| `linear-ticket-check.yml` | PR to `main` | Requires a Linear ticket reference in the PR title, body, or branch name |
+| `auto-author-assign.yml` | PR opened | Assigns the PR author as assignee |
+| `close-stale-prs.yml` | Daily schedule | Marks PRs stale after 23 days, closes 7 days later (exempt: `work-in-progress`, `blocked`) |
 
 The `publish-tiles.yml` workflow requires a Tessl API key as a GitHub Actions secret ([docs](https://docs.tessl.io/distribute/review-and-publish-with-github-actions.md)):
 

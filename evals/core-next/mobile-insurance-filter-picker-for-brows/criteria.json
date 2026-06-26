@@ -1,0 +1,132 @@
+{
+  "context": "Evaluates implementation of a Vercel feature-flagged mobile insurance picker in the browse feed, including flag infrastructure, client-side resolution for ISR preservation, in-feed InsurancePicker component, FilterTopbar integration, session storage persistence, and Segment analytics.",
+  "type": "weighted_checklist",
+  "checklist": [
+    {
+      "name": "insurance_picker_renders_in_feed",
+      "example": "BrowseView renders a div with class 'lg:hidden' containing InsurancePicker below the FilterTopbar div when insuranceInfeedUxEnabled is true.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "When the flag is enabled, a mobile-visible insurance picker UI component appears in the browse feed below the filter bar, hidden on large screens (lg breakpoint and above)."
+    },
+    {
+      "name": "picker_toggle_applies_removes_filter",
+      "example": "onToggle in BrowseView calls onSearchChange with updated refinementList that includes or omits accepted_insurance based on the enabled state.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "Toggling the insurance picker on applies the saved insurance as a search refinement; toggling it off removes the insurance refinement from search results."
+    },
+    {
+      "name": "picker_open_triggers_insurance_selector",
+      "example": "insuranceOpenRef wired between BrowseView and FilterTopbar; InsurancePicker onOpen calls insuranceOpenRef.current().",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "Tapping the picker when no insurance is selected (or tapping the insurance name) opens the existing insurance filter selector in the FilterTopbar."
+    },
+    {
+      "name": "insurance_chip_hidden_mobile_when_flag_enabled",
+      "example": "FilterTopbar applies 'absolute max-h-0 max-w-0 overflow-hidden lg:relative lg:max-h-none lg:max-w-none lg:overflow-visible' to the insurance chip div when insuranceOpenRef is provided.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "When the in-feed picker is active, the insurance chip in the FilterTopbar is visually hidden on mobile viewports to avoid duplication."
+    },
+    {
+      "name": "picker_only_on_location_taxonomy_page_types",
+      "example": "insuranceInfeedUxEnabled checks isLocationPageType(pageType) || isTaxonomyPageType(pageType) in addition to the flag value.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "The in-feed insurance picker is only shown on location and taxonomy page types, not on all browse pages."
+    },
+    {
+      "name": "session_storage_persists_insurance_selection",
+      "example": "BrowseView saves activeInsurance to sessionStorage on toggle-off and reads from it via getSessionStorage when building savedInsurance; SAVED_INSURANCE_SESSION_KEY constant used.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "When the user disables the insurance filter, the previously selected insurance is saved and restored when re-enabling, so users do not need to re-select their insurance on toggle."
+    },
+    {
+      "name": "flag_resolved_client_side_for_static_pages",
+      "example": "browse/page.tsx and location/[slug]/page.tsx pass resolveInsuranceFilterInfeedOnClient without calling the flag directly; BrowseView fetches from /api/flags/insurance-filter-infeed/ via useInsuranceFilterInfeedFlagValue.",
+      "category": "INTENT",
+      "max_score": 1,
+      "description": "Pages that use ISR/static rendering evaluate the feature flag on the client (via a fetch to a Route Handler) rather than during server rendering, so the pages remain statically renderable."
+    },
+    {
+      "name": "uses_vercel_flags_sdk_pattern",
+      "example": "insuranceFilterInfeedFlag defined via flag() from 'flags/next' with createVercelAdapter/vercelAdapter in services/flags/insuranceFilterInfeed/client.ts; key constant in const.ts.",
+      "category": "REUSE",
+      "max_score": 1,
+      "description": "The feature flag is defined using the Vercel Flags SDK (flags/next) with a Vercel adapter, following the existing services/flags directory structure with separate client.ts and const.ts modules."
+    },
+    {
+      "name": "uses_segment_cookies_for_flag_identity",
+      "example": "identifyInsuranceFlagEntities reads ajs_user_id and ajs_anonymous_id cookies, URL-decodes and JSON-unwraps them, and returns { user: { id } }.",
+      "category": "REUSE",
+      "max_score": 1,
+      "description": "Flag user identification reads from the existing Segment analytics cookies (ajs_user_id / ajs_anonymous_id) to align flag targeting with Segment/Amplitude user identity."
+    },
+    {
+      "name": "uses_route_handler_pattern",
+      "example": "GET handler in api/flags/insurance-filter-infeed/route.ts uses routeHandler({ protected: false, handler }) and returns successResponse({ enabled }).",
+      "category": "REUSE",
+      "max_score": 1,
+      "description": "The flag API endpoint uses the project's routeHandler wrapper and successResponse helper, consistent with other API routes in the codebase."
+    },
+    {
+      "name": "uses_segment_analytics_for_events",
+      "example": "useSegment() used for analytics.ui.click events; useInsurancePickerInViewportSegment uses analytics.track with getCommonProperties(); trackFeatureFlag uses analytics.identify and analytics.track.",
+      "category": "REUSE",
+      "max_score": 1,
+      "description": "Analytics events (picker viewed, opened, toggled, filter applied) use the existing Segment analytics client and useSegment hook following the codebase's analytics patterns."
+    },
+    {
+      "name": "flag_discovery_endpoint_registered",
+      "example": "insuranceFilterInfeedFlag passed to getProviderData() in src/app/.well-known/vercel/flags/route.ts.",
+      "category": "INTEGRATION",
+      "max_score": 1,
+      "description": "The new flag is registered in the Vercel Flags discovery endpoint so it appears in the Flags Explorer / Vercel dashboard."
+    },
+    {
+      "name": "flags_env_vars_in_server_env",
+      "example": "FLAGS and FLAGS_SECRET added as optional strings to serverSchema in src/lib/env.server.ts.",
+      "category": "INTEGRATION",
+      "max_score": 1,
+      "description": "The FLAGS and FLAGS_SECRET environment variables needed by the Vercel Flags SDK are declared in the server env schema."
+    },
+    {
+      "name": "flag_exposure_tracked_once_per_session",
+      "example": "hasTrackedFlagRef guards trackFeatureFlag call in BrowseView useEffect, ensuring it fires only when effectiveInsuranceFilterInfeed becomes true for the first time.",
+      "category": "DESIGN",
+      "max_score": 1,
+      "description": "Feature flag exposure is tracked via Segment exactly once per component mount, not on every render, to avoid duplicate analytics events."
+    },
+    {
+      "name": "picker_viewed_fires_once_on_intersection",
+      "example": "useInsurancePickerInViewportSegment uses IntersectionObserver and calls obs.unobserve(entry.target) after the first intersection event.",
+      "category": "DESIGN",
+      "max_score": 1,
+      "description": "The 'insurance_filter_viewed' analytics event fires exactly once when the picker enters the viewport, not repeatedly on subsequent intersections or re-renders."
+    },
+    {
+      "name": "saved_insurance_cleared_on_explicit_remove",
+      "example": "FilterTopbar clearFilters callback calls setSessionStorage(SAVED_INSURANCE_SESSION_KEY, []) when taxonomy === 'accepted_insurance'.",
+      "category": "EDGE_CASE",
+      "max_score": 1,
+      "description": "When the user explicitly removes the insurance filter via the FilterTopbar chip's clear action, the saved insurance in sessionStorage is also cleared."
+    },
+    {
+      "name": "picker_open_action_handles_uninitialized_ref",
+      "example": "insuranceOpenRef.current?.() uses optional chaining; onOpenRef effect in LazyMultiSelectChip assigns handleOpen to the ref after mount.",
+      "category": "EDGE_CASE",
+      "max_score": 1,
+      "description": "The mechanism for opening the insurance filter from the InsurancePicker does not throw when the FilterTopbar's internal open handler has not yet been registered."
+    },
+    {
+      "name": "no_picker_when_flag_disabled",
+      "example": "insuranceInfeedUxEnabled is false by default; all conditional rendering and insuranceOpenRef passing are gated on it.",
+      "category": "MUST_NOT",
+      "max_score": 1,
+      "description": "When the feature flag is disabled or not yet resolved, the browse experience is unchanged — no InsurancePicker, no insurance chip hiding, no ref wiring."
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+name: Linear Ticket Check
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, edited]
+  issue_comment:
+    types: [created]
+permissions:
+  issues: write
+  pull-requests: write
+jobs:
+  linear-ticket-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for Linear ticket
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let prTitle, prBody, prNumber, branchName;
+
+            // Handle different event types
+            if (context.eventName === 'pull_request') {
+              prTitle = context.payload.pull_request.title;
+              prBody = context.payload.pull_request.body || '';
+              prNumber = context.payload.pull_request.number;
+              branchName = context.payload.pull_request.head.ref;
+            } else if (context.eventName === 'issue_comment') {
+              // Skip if comment is not on a pull request
+              if (!context.payload.issue.pull_request) {
+                console.log('Comment is not on a pull request, skipping...');
+                return;
+              }
+              
+              // Get PR details
+              const pr = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.issue.number,
+              });
+              
+              // Skip if PR is not targeting main branch
+              if (pr.data.base.ref !== 'main') {
+                console.log('PR is not targeting main branch, skipping...');
+                return;
+              }
+              
+              prTitle = pr.data.title;
+              prBody = pr.data.body || '';
+              prNumber = pr.data.number;
+              branchName = pr.data.head.ref;
+              
+              // Also check the comment that was just added
+              const commentBody = context.payload.comment.body || '';
+              prBody = prBody + '\n\n' + commentBody;
+            } else {
+              console.log('Unsupported event type, skipping...');
+              return;
+            }
+
+            // Linear ticket patterns to check for
+            const linearPatterns = [
+              // Linear ticket ID patterns (e.g., ABC-123, TEAM-456, coo-1046) - case insensitive
+              /[A-Za-z]+[A-Za-z0-9]*-\d+/i,
+              // Linear URLs (e.g., https://linear.app/team/issue/ABC-123) - case insensitive
+              /https:\/\/linear\.app\/[^\/]+\/issue\/[A-Za-z]+[A-Za-z0-9]*-\d+/i,
+              // Linear app URLs with different formats - case insensitive
+              /https:\/\/[a-zA-Z0-9-]+\.linear\.app\/issue\/[A-Za-z]+[A-Za-z0-9]*-\d+/i
+            ];
+
+            let hasLinearTicket = false;
+            let foundTickets = [];
+
+            // Check PR title for Linear tickets
+            for (const pattern of linearPatterns) {
+              // Create global regex safely, avoiding duplicate 'g' flags
+              const globalFlags = pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g';
+              const titleMatches = prTitle.match(new RegExp(pattern.source, globalFlags));
+              if (titleMatches) {
+                hasLinearTicket = true;
+                foundTickets.push(...titleMatches);
+              }
+            }
+
+            // Check PR body for Linear tickets
+            for (const pattern of linearPatterns) {
+              // Create global regex safely, avoiding duplicate 'g' flags
+              const globalFlags = pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g';
+              const bodyMatches = prBody.match(new RegExp(pattern.source, globalFlags));
+              if (bodyMatches) {
+                hasLinearTicket = true;
+                foundTickets.push(...bodyMatches);
+              }
+            }
+
+            // Check branch name for Linear tickets with specific pattern to extract just ticket ID
+            console.log(`Checking branch name: ${branchName}`);
+            const branchTicketPattern = /(?:^|[\/\-_])([A-Za-z]+[A-Za-z0-9]*-\d+)(?:[\/\-_]|$)/gi;
+            const branchMatches = branchName.match(branchTicketPattern);
+            if (branchMatches) {
+              // Extract just the ticket IDs using capturing groups
+              for (const match of branchMatches) {
+                const ticketMatch = match.match(/([A-Za-z]+[A-Za-z0-9]*-\d+)/i);
+                if (ticketMatch) {
+                  hasLinearTicket = true;
+                  foundTickets.push(ticketMatch[1]); // Use capturing group result
+                  console.log(`Found ticket in branch name: ${ticketMatch[1]}`);
+                }
+              }
+            }
+
+            // Get existing comments to check for duplicates
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const existingFailureComment = comments.data.find(
+              (comment) =>
+                comment.body.includes('🚫 Linear Ticket Required') &&
+                comment.body.includes('This comment was automatically generated by the Linear Ticket Check workflow')
+            );
+
+            if (!hasLinearTicket) {
+              // Only add a comment if one doesn't already exist
+              if (!existingFailureComment) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: '## 🚫 Linear Ticket Required\n\n❌ **No Linear ticket found in this PR.**\n\nPlease include a Linear ticket reference in one of the following formats:\n• **In PR title**: `[ABC-123] PR title` or `coo-1046: PR title`\n• **In PR description**: `ABC-123` or `coo-1046` or Linear URL `https://linear.app/team/issue/ABC-123`\n• **In branch name**: `feature/ABC-123-description` or `username/coo-1046-feature-name`\n\nTicket IDs are case-insensitive (both `ABC-123` and `abc-123` work).\n\nThis helps us track work and maintain proper project management. Once you add a Linear ticket reference, this check will automatically pass.\n\n---\n*This comment was automatically generated by the Linear Ticket Check workflow.*'
+                });
+              }
+
+              core.setFailed('❌ No Linear ticket found in PR title, description, or branch name. Please include a Linear ticket reference in the PR title, description, or branch name.');
+            } else {
+              const uniqueTickets = [...new Set(foundTickets)];
+              console.log(`✅ Linear ticket(s) found: ${uniqueTickets.join(', ')}`);
+              core.notice(`Linear ticket(s) found: ${uniqueTickets.join(', ')}`);
+              
+              // Remove existing failure comment if present
+              if (existingFailureComment) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existingFailureComment.id,
+                });
+                console.log(`Removed previous failure comment: ${existingFailureComment.id}`);
+              }
+            }
