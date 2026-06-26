@@ -106,6 +106,7 @@ describe("isBlank", () => {
       expect(isBlank("")).toBe(true);
       expect(isBlank(" ")).toBe(true);
       expect(isBlank("\t")).toBe(true);
+      expect(isBlank(" ")).toBe(true); // non-breaking space
     });
   });
 
@@ -134,3 +135,5 @@ If the caller already has an import from `@/utils/checks.util`, add the new func
 ```ts
 import { isNil, isNonEmptyString, isNewFunction } from "@/utils/checks.util";
 ```
+
+Never import from `@rehabpath/core-components` — use the local version which has the full function set.
