@@ -12,12 +12,12 @@ Every public-facing page must include metadata for SEO:
 
 ```ts
 // Good — static metadata
-import type { Metadata } from 'next'
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Page Title | Recovery.com',
-  description: 'Page description between 150–160 characters.'
-}
+  title: "Page Title | Recovery.com",
+  description: "Page description between 150–160 characters.",
+};
 
 // Good — dynamic metadata
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -34,11 +34,20 @@ Flag pages that don't set a canonical URL in their metadata.
 - Never use relative URLs as canonical links.
 
 ```ts
-import { getCanonical } from '@/application/seo/getCanonicalForPath'
+import { getCanonical } from "@/application/seo/getCanonicalForPath";
 
-const canonical = getCanonical('/condition/alcohol/')
+const canonical = getCanonical("/condition/alcohol/");
 // Returns: "https://recovery.com/condition/alcohol/"
 ```
+
+## SEO: Sitemap Registration
+
+Flag new indexable page types (a new dynamic route under `src/app/` with indexable metadata, e.g. `brands/[slug]`, `landing/[slug]`) that are not registered in a sitemap.
+
+- Dynamic, data-driven URL types must be added to `SITEMAP_NAMES` (`src/app/api/sitemap/types.ts`) with matching routes under `src/app/api/sitemap/{type}/` and `src/app/{type}-sitemap.xml/`.
+- A small set of static URLs must be added to `public/utility-sitemap.xml`.
+- Per-page metadata alone does not make a page discoverable — registration is a separate, manual step.
+- Every `<loc>` must be an absolute URL with a trailing slash (matches `trailingSlash: true`).
 
 ## SEO: Meta Title and Description Lengths
 
@@ -94,15 +103,15 @@ Flag the same data-fetching function called in both `generateMetadata` and the p
 ```ts
 // Bad — duplicate fetches
 export async function generateMetadata({ params }) {
-  const data = await fetchData(params.slug) // call #1
+  const data = await fetchData(params.slug); // call #1
 }
 export default async function Page({ params }) {
-  const data = await fetchData(params.slug) // call #2 — duplicate!
+  const data = await fetchData(params.slug); // call #2 — duplicate!
 }
 
 // Good — native fetch deduplicates automatically
 async function fetchData(slug: string) {
-  return fetch(`https://api.recovery.com/data/${slug}`).then((r) => r.json())
+  return fetch(`https://api.recovery.com/data/${slug}`).then((r) => r.json());
 }
 ```
 
@@ -114,14 +123,14 @@ Flag sequential `await` calls for independent async operations in the same funct
 
 ```ts
 // Bad
-const location = await getLocation(slug)
-const centers = await getCenters(slug)
+const location = await getLocation(slug);
+const centers = await getCenters(slug);
 
 // Good
 const [location, centers] = await Promise.all([
   getLocation(slug),
-  getCenters(slug)
-])
+  getCenters(slug),
+]);
 ```
 
 ## Unnecessary 'use client'
@@ -188,16 +197,16 @@ Flag new content-type pages (`page.tsx`) that don't include JSON-LD Schema marku
 
 ```tsx
 // Good
-import { JsonLdSchema } from '@/components/atoms/JsonLdSchema'
+import { JsonLdSchema } from "@/components/atoms/JsonLdSchema";
 
 const schema = {
-  '@context': 'https://schema.org',
-  '@type': 'MedicalOrganization',
+  "@context": "https://schema.org",
+  "@type": "MedicalOrganization",
   name: center.name,
-  url: `https://recovery.com${getCenterProfileSlug(center)}`
-}
+  url: `https://recovery.com${getCenterProfileSlug(center)}`,
+};
 
-return <JsonLdSchema data={schema} />
+return <JsonLdSchema data={schema} />;
 ```
 
 ## Accessibility

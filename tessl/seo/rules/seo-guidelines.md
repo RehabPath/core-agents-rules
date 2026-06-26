@@ -1,14 +1,10 @@
-
 ### Canonical URLs
 
 - Ensure every page has a canonical URL unless it is explicitly an internal-only page.
 
   ```html
   <!-- Correct -->
-  <link
-    rel="canonical"
-    href="https://recovery.com/condition/alcohol/"
-  />
+  <link rel="canonical" href="https://recovery.com/condition/alcohol/" />
 
   <!-- Incorrect -->
   <!-- Missing canonical URL -->
@@ -21,10 +17,14 @@
 
   ```ts
   // Correct
-  alternates: { canonical: getCanonical('/partners/some-slug/') }
+  alternates: {
+    canonical: getCanonical("/partners/some-slug/");
+  }
 
   // Incorrect — bypasses canonical logic
-  alternates: { canonical: ensureTrailingSlash(`https://recovery.com/partners/${slug}`) }
+  alternates: {
+    canonical: ensureTrailingSlash(`https://recovery.com/partners/${slug}`);
+  }
   ```
 
 - For luxury facet pages (e.g. `/florida/luxury/`), `og:url` and `alternates.canonical` intentionally differ. `og:url` points to the facet-specific URL so social shares show the correct page, while `canonical` points to the parent location page to consolidate SEO authority. This split is handled automatically by `generateMetadataForSearchPage` via `computeLuxuryCanonical` — no manual intervention is needed. For all other facet pages the canonical is self-referencing (points to the facet URL itself), which is correct.
@@ -38,14 +38,19 @@
   <title>Alcohol Treatment Centers in Florida | Recovery.com</title>
 
   <!-- Incorrect: too long (over 60 characters) -->
-  <title>Recovery Center - Best Treatment for Addiction and Substance Abuse Programs</title>
+  <title>
+    Recovery Center - Best Treatment for Addiction and Substance Abuse Programs
+  </title>
   ```
 
 - Ensure all pages include meta descriptions between 150-160 characters.
 
   ```html
   <!-- Correct -->
-  <meta name="description" content="Find accredited alcohol treatment centers in Florida. Compare programs, read reviews, and get help finding the right recovery path." />
+  <meta
+    name="description"
+    content="Find accredited alcohol treatment centers in Florida. Compare programs, read reviews, and get help finding the right recovery path."
+  />
 
   <!-- Incorrect: too short and not descriptive -->
   <meta name="description" content="Treatment centers." />
@@ -74,6 +79,28 @@ Use the appropriate helper based on the page type:
 - **`generateMetadataForSearchPage`** (`src/application/seo/generateSearchPageMetadataParams.ts`) — use for location, taxonomy term, and facet pages that rely on Algolia search results and dynamic title/description generation.
 - **`assembleContentPageData(...).metadata`** (`src/application/content/assembleContentPageData.ts`) — use for CMS-driven content pages (blog posts, resources, news, voices, podcasts).
 
+### Sitemaps
+
+An indexable page is only discoverable if its URL is also present in a sitemap. Sitemaps are a **manually maintained registry** — adding a new indexable page type does not register it automatically.
+
+The sitemap index (`/sitemap.xml`) is assembled from two sources:
+
+- **Dynamic per-type sitemaps** — registered in `SITEMAP_NAMES` (`src/app/api/sitemap/types.ts`) with a matching data route under `src/app/api/sitemap/{type}/route.ts` and a root XML route at `src/app/{type}-sitemap.xml/route.ts`. Existing types: `centers`, `location`, `taxonomy`, `facet`, `insurance`, `resources`, `authors`.
+- **Static sitemaps** — `public/utility-sitemap.xml` (marketing/utility pages) and `public/luxury-sitemap.xml`.
+
+When you add a new indexable page type, pick one of the two paths below.
+
+**Dynamic, data-driven URLs** (one page per record, e.g. brands, landing pages) — complete all four steps:
+
+1. Add `'{type}-sitemap.xml'` to the `SITEMAP_NAMES` array in `src/app/api/sitemap/types.ts`.
+2. Add a persistence function in `src/persistence/sitemap/{type}.persistence.ts` that returns the rows for the new page type (follow `src/persistence/sitemap/resources.persistence.ts`).
+3. Create the data route at `src/app/api/sitemap/{type}/route.ts` using `routeHandler({ protected: false })`, mapping each row to a `SitemapEntry` whose `url` is `` `${RECOVERY_URL}${path}` `` and returning `NextResponse.json<SitemapApiResponse>({ entries })` (follow `src/app/api/sitemap/resources/route.ts`).
+4. Create the root XML route at `src/app/{type}-sitemap.xml/route.ts` that returns `serveSitemapXml(request, '/api/sitemap/{type}')` (follow `src/app/resources-sitemap.xml/route.ts`).
+
+**A handful of static URLs** (e.g. a new marketing page) — add a `<url><loc>` entry to `public/utility-sitemap.xml`. Do not touch `SITEMAP_NAMES`; the static sitemaps are already referenced by `src/app/api/sitemap/route.ts`.
+
+Every `<loc>` must be an absolute URL **with a trailing slash** to match `trailingSlash: true` in `next.config.ts` and the canonical produced by `getCanonical()`. A sitemap URL without a trailing slash (e.g. `https://recovery.com/about` instead of `https://recovery.com/about/`) does not match its canonical and causes an extra redirect hop.
+
 ### Robots meta tag
 
 - Avoid robots meta tag for indexable pages (default allows indexing).
@@ -81,16 +108,10 @@ Use the appropriate helper based on the page type:
 
   ```html
   <!-- Correct: Admin page -->
-  <meta
-    name="robots"
-    content="noindex, nofollow"
-  />
+  <meta name="robots" content="noindex, nofollow" />
 
   <!-- Incorrect: Public content page -->
-  <meta
-    name="robots"
-    content="noindex"
-  />
+  <meta name="robots" content="noindex" />
   ```
 
 - Never set `robots: { index: true }` explicitly. Indexing is the default; omit `robots` entirely on indexable pages. Only set `robots` when you need to deviate from the default (e.g. `noindex`, `nofollow`).
@@ -100,16 +121,16 @@ Use the appropriate helper based on the page type:
   export const metadata: Metadata = {
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    alternates: { canonical: CANONICAL_LINK }
-  }
+    alternates: { canonical: CANONICAL_LINK },
+  };
 
   // Incorrect — redundant, adds noise with no effect
   export const metadata: Metadata = {
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
     alternates: { canonical: CANONICAL_LINK },
-    robots: { index: true }
-  }
+    robots: { index: true },
+  };
   ```
 
 ### Link Implementation
@@ -278,12 +299,12 @@ Choose the appropriate configuration based on your business relationship:
 
 **When to Use Each Configuration:**
 
-| Business Relationship    | Configuration                   | Benefits                 | Trade-offs                  |
-| ------------------------ | ------------------------------- | ------------------------ | --------------------------- |
-| **Unknown/Public Sites** | Default                         | Maximum security      | No tracking, no SEO benefit |
-| **Analytics Partners**   | `forceTrackingExternal={true}` | Conversion tracking (`rel="nofollow"` only) | No SEO benefit |
-| **Authority Partners**   | `forceFollowExternal={true}`   | Link equity, indexing | No tracking capability      |
-| **Strategic Partners**   | Both flags `={true}`           | Full partnership      | window.opener exposed       |
+| Business Relationship    | Configuration                  | Benefits                                    | Trade-offs                  |
+| ------------------------ | ------------------------------ | ------------------------------------------- | --------------------------- |
+| **Unknown/Public Sites** | Default                        | Maximum security                            | No tracking, no SEO benefit |
+| **Analytics Partners**   | `forceTrackingExternal={true}` | Conversion tracking (`rel="nofollow"` only) | No SEO benefit              |
+| **Authority Partners**   | `forceFollowExternal={true}`   | Link equity, indexing                       | No tracking capability      |
+| **Strategic Partners**   | Both flags `={true}`           | Full partnership                            | window.opener exposed       |
 
 **Questions to Ask:**
 
@@ -417,9 +438,12 @@ The `SeoLink` component **automatically adds `nofollow`** to any URL containing 
 
 ### Schema markup
 
-- Include appropriate JSON-LD Schema markup for new content types.
+- Reuse an existing schema builder before writing a new JSON-LD object by hand. Builders live in three places:
+  - `src/application/seo/generate*Schema.ts` — page-level builders that orchestrate data (e.g. `generateCenterProfileSchemas`, `generateBrandSchema`, `generateCollectionPageSchema`, `generateReviewSchema`).
+  - `src/domain/seo/use-cases/build*Schema.ts` — pure builders for a single content type (e.g. `buildBlogPostingSchema`, `buildPodcastEpisodeSchema`).
+  - `src/utils/schema/*.ts` — generic, reusable schema pieces (e.g. `centerSchema`, `breadcrumbSchema`, `itemListSchema`).
 
-- Use `MedicalOrganization` for treatment centers, `Article` for blog posts, `FAQPage` for FAQ sections.
+- Pick the `@type` by mapping the content to a schema.org type: `MedicalOrganization` for treatment centers, `Article`/`BlogPosting` for articles and blog posts, `FAQPage` for FAQ sections, `PodcastEpisode` for podcast episodes, `CollectionPage` for listing/taxonomy pages, `BreadcrumbList` for breadcrumbs. For a content type not covered by an existing builder, add a new builder in the matching directory above (domain for pure single-type schemas, application for ones that orchestrate data) rather than inlining the object in a component.
 
 - All JSON-LD structured data must be injected via the `<JsonLdSchema />` component (`src/components/atoms/JsonLdSchema/JsonLdSchema.tsx`). Raw `<script type="application/ld+json">` tags in components are not allowed.
 
@@ -521,21 +545,23 @@ The `SeoLink` component **automatically adds `nofollow`** to any URL containing 
   </button>
   ```
 
-- Use "View All" anchor links vs "Show More" buttons based on item count thresholds.
+- Choose between a crawlable "View All" link and a "Show More" button using the visible-item threshold (`ITEMS_VISIBLE_THRESHOLD_MOBILE` = 7 on mobile, `ITEMS_VISIBLE_THRESHOLD_DESKTOP` = 17 on desktop, from `src/application/browseBy/const.ts`). Use the `shouldShowShowMore` and `shouldShowViewAll` helpers (`src/application/browseBy/`) rather than re-deriving this logic:
+  - When a list has **more items than the threshold**, render a `ShowMoreButton` (a `<button>` that expands the list in place — it does not need to be crawlable).
+  - Render the **"View All" `SeoLink`** (pointing to the dedicated listing page) when the list already fits within the threshold, or once the user has expanded it via "Show More". This keeps the full listing reachable by crawlers through the listing page. It only applies when the tab has a `viewAll` destination.
 
   ```tsx
-  // Correct: View All link for browseable content
+  // Correct: View All link for browseable content (list fits, or already expanded)
   <SeoLink url="/conditions/" className="flex items-center gap-1">
     All Conditions
     <IconRightArrow />
   </SeoLink>
 
-  // Correct: Show More button for expanding current view
+  // Correct: Show More button when itemCount exceeds the threshold
   <ShowMoreButton
     showMore={showMore}
     setShowMore={setShowMore}
     itemCount={links.length}
-    currentThreshold={isMobile ? 7 : 17}
+    currentThreshold={isMobile ? ITEMS_VISIBLE_THRESHOLD_MOBILE : ITEMS_VISIBLE_THRESHOLD_DESKTOP}
   />
 
   // Incorrect: button for "view all" navigation hides links from crawlers
@@ -568,21 +594,21 @@ The `SeoLink` component **automatically adds `nofollow`** to any URL containing 
 
   ```tsx
   // Incorrect: useEffect fetching — links are invisible to crawlers
-  'use client'
+  "use client";
   const RelatedCenters = () => {
-    const [centers, setCenters] = useState([])
+    const [centers, setCenters] = useState([]);
 
     useEffect(() => {
-      fetchRelatedCenters().then(setCenters)
-    }, [])
+      fetchRelatedCenters().then(setCenters);
+    }, []);
 
     return centers.map((center) => (
       <Link key={center.slug} href={getCenterProfileSlug(center)}>
         {center.name}
       </Link>
       // Links not rendered on the server — invisible to search engines
-    ))
-  }
+    ));
+  };
   ```
 
 **Use Server Components for SEO-critical content**
@@ -591,19 +617,19 @@ The `SeoLink` component **automatically adds `nofollow`** to any URL containing 
 // Correct: async Server Component — data is fetched on the server and
 // rendered in the HTML response visible to crawlers
 async function RelatedCenters({ centerSlug }: { centerSlug: string }) {
-  const centers = await fetchRelatedCenters(centerSlug)
+  const centers = await fetchRelatedCenters(centerSlug);
 
   return centers.map((center) => (
     <SeoLink key={center.slug} url={getCenterProfileSlug(center)}>
       {center.name}
     </SeoLink>
     // Links available in the server-rendered HTML
-  ))
+  ));
 }
 
 // Correct: Page-level data fetching in a Server Component
 async function CenterPage({ params }: { params: { slug: string } }) {
-  const center = await fetchCenter(params.slug)
+  const center = await fetchCenter(params.slug);
 
   return (
     <div>
@@ -614,13 +640,13 @@ async function CenterPage({ params }: { params: { slug: string } }) {
         </SeoLink>
       ))}
     </div>
-  )
+  );
 }
 
 // Correct: generateStaticParams for static generation at build time
 export async function generateStaticParams() {
-  const centers = await fetchAllCenters()
-  return centers.map((center) => ({ slug: center.slug }))
+  const centers = await fetchAllCenters();
+  return centers.map((center) => ({ slug: center.slug }));
 }
 ```
 
@@ -651,22 +677,22 @@ These constants from the codebase determine when to use anchor links vs buttons.
 
 ```javascript
 // Insurance carousel threshold
-INSURANCE_ANCHOR_THRESHOLD = 20
-MINIMUM_HITS_FOR_INSURANCE_CAROUSEL = 20
+INSURANCE_ANCHOR_THRESHOLD = 20;
+MINIMUM_HITS_FOR_INSURANCE_CAROUSEL = 20;
 
 // Browse by visibility thresholds
-ITEMS_VISIBLE_THRESHOLD_DESKTOP = 17
-ITEMS_VISIBLE_THRESHOLD_MOBILE = 7
+ITEMS_VISIBLE_THRESHOLD_DESKTOP = 17;
+ITEMS_VISIBLE_THRESHOLD_MOBILE = 7;
 
 // Location link threshold
-MIN_LOCATION_COUNT = 10
+MIN_LOCATION_COUNT = 10;
 
 // General mini carousel threshold
-DEFAULT_CARD_COUNT_LIMIT = 50
+DEFAULT_CARD_COUNT_LIMIT = 50;
 
 // Overview menu thresholds
-CONDITIONS_LIST_MOBILE_MAX_ITEMS = 4
-CLIENTELE_LIST_MOBILE_MAX_ITEMS = 5
+CONDITIONS_LIST_MOBILE_MAX_ITEMS = 4;
+CLIENTELE_LIST_MOBILE_MAX_ITEMS = 5;
 ```
 
 ## Tools and Testing
