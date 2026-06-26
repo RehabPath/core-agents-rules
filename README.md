@@ -139,8 +139,9 @@ Optional tooling for working in this repo:
 
 ```bash
 pnpm install        # installs prettier + sets up the Husky pre-commit hook
-pnpm lint           # lint all tiles + check formatting
+pnpm lint           # validate all tiles (tessl tile lint)
 pnpm format         # auto-format Markdown/JSON with prettier
+pnpm format:check   # check formatting without writing
 ```
 
 The pre-commit hook runs `lint-staged` to prettier-format staged Markdown/JSON; it activates after `pnpm install`. PRs to `main` must reference a Linear ticket (enforced by `linear-ticket-check.yml`).

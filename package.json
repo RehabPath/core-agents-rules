@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.27.0",
   "scripts": {
-    "lint": "pnpm lint:tiles && pnpm format:check",
+    "lint": "pnpm lint:tiles",
     "lint:tiles": "for d in tessl/*/; do tessl tile lint \"$d\" || exit 1; done",
     "format": "prettier --write README.md package.json .github/workflows/*.yml \"tessl/**/*.md\" \"tessl/**/*.json\"",
     "format:check": "prettier --check README.md package.json .github/workflows/*.yml \"tessl/**/*.md\" \"tessl/**/*.json\"",
