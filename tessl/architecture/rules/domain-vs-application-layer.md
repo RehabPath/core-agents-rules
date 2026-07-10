@@ -1,4 +1,3 @@
-
 # Domain vs Application Layer
 
 ## Key Distinction
@@ -23,23 +22,23 @@
 // ✅ GOOD: Pure domain entity module
 // domain/location/location.model.ts
 export const getTitle = (location?: Partial<Location>): string =>
-  location?.title || ''
+  location?.title || "";
 
 export const isLocationCity = (location: Location): boolean =>
-  getLocationType(location) === LOCATION_TYPE.CITY
+  getLocationType(location) === LOCATION_TYPE.CITY;
 
 export const isLocationLuxury = (location: Location): boolean =>
-  !!location?.isLuxury
+  !!location?.isLuxury;
 
 // ✅ GOOD: Pure single-domain use case
 // domain/location/use-cases/isLocationInUnitedStates.ts
 export const isLocationInUnitedStates = (location: Location): boolean => {
-  const lowercaseUnitedStates = UNITED_STATES.toLowerCase()
+  const lowercaseUnitedStates = UNITED_STATES.toLowerCase();
   return getAllLocationTitles(location)
     .map((locationTitle) => locationTitle.toLowerCase())
-    .join(' ')
-    .includes(lowercaseUnitedStates)
-}
+    .join(" ")
+    .includes(lowercaseUnitedStates);
+};
 
 // ✅ GOOD: Value object pattern with encapsulated rules
 // domain/center/sponsorTier.ts
@@ -48,8 +47,8 @@ export const SponsorTierModule = {
     setHas(SPONSOR_VALUES, tier),
   isPPV,
   isCapped,
-  isPaused
-} as const
+  isPaused,
+} as const;
 ```
 
 ## Application Layer Principles
@@ -77,29 +76,29 @@ export const SponsorTierModule = {
 // ❌ BAD: Business logic in API route
 // api/sendInquiryForm.ts (legacy)
 const handler = async (req, res) => {
-  const blacklist = await getBlacklist()
+  const blacklist = await getBlacklist();
   if (blacklist.includes(message) || blacklist.includes(email)) {
-    return res.status(500).json({ message: 'Blacklisted' })
+    return res.status(500).json({ message: "Blacklisted" });
   }
-  const centerData = await client.center.findFirst({ where: { slug } })
+  const centerData = await client.center.findFirst({ where: { slug } });
   // 170+ lines of email building mixed with API handling
-}
+};
 
 // ❌ BAD: fetch() calls inside domain layer
 // domain/benefits/verifyTxHelpers.js (legacy)
 export const getPayers = async (benefitsKey) => {
   const response = await fetch(
-    `https://api.verifytx.com/webforms/widgets/${benefitsKey}`
-  )
+    `https://api.verifytx.com/webforms/widgets/${benefitsKey}`,
+  );
   // Domain should NEVER make external calls
-}
+};
 
 // ❌ BAD: Domain function calling repository/persistence
 // domain/center/use-cases/getFeaturedCentersRelatedToCenterLocation.ts (legacy)
-import { fetchFeaturedCenters } from '@/repository/center/fetchFeaturedCenter'
+import { fetchFeaturedCenters } from "@/repository/center/fetchFeaturedCenter";
 export const getFeaturedCentersRelatedToCenterLocation = async ({ center }) => {
-  return await fetchFeaturedCenters({ location }) // Wrong!
-}
+  return await fetchFeaturedCenters({ location }); // Wrong!
+};
 ```
 
 ## Deciding if a file belongs in domain or application
@@ -152,13 +151,13 @@ flowchart TD
 
 ### Concrete examples from this codebase
 
-| File or function                                               | Layer           | Why                                                                                   |
-| -------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- |
-| `getCenterProfileSlug(center)` in `domain/center/center.model.ts` | **domain**      | Pure, single entity, no I/O. Rule 1 fails all 4 signals.                              |
-| `computeBreadCrumbs` in `application/page/computeBreadCrumbs.ts` | **application** | Dispatches across 5 page-type-specific computers and post-processes. Rule 1 triggers. |
-| `ResolveSlugResponse` type in `domain/routing/routing.model.ts` | **domain**      | Pure vocabulary describing a resolved slug; consumed by API route, middleware, and `application/routing/resolveSlug.ts`. Rule 2 (vocabulary) + rule 3 (3+ layers). |
-| `SITE_NAME` in `domain/seo/const.ts`                           | **domain**      | Domain vocabulary, not an orchestration knob. Rule 2.                                 |
-| `NAV_LINKS` in `application/navBar/const.ts`                   | **application** | UI-only presentation copy for the nav; documented exception — not a business rule.    |
+| File or function                                                  | Layer           | Why                                                                                                                                                                |
+| ----------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `getCenterProfileSlug(center)` in `domain/center/center.model.ts` | **domain**      | Pure, single entity, no I/O. Rule 1 fails all 4 signals.                                                                                                           |
+| `computeBreadCrumbs` in `application/page/computeBreadCrumbs.ts`  | **application** | Dispatches across 5 page-type-specific computers and post-processes. Rule 1 triggers.                                                                              |
+| `ResolveSlugResponse` type in `domain/routing/routing.model.ts`   | **domain**      | Pure vocabulary describing a resolved slug; consumed by API route, middleware, and `application/routing/resolveSlug.ts`. Rule 2 (vocabulary) + rule 3 (3+ layers). |
+| `SITE_NAME` in `domain/seo/const.ts`                              | **domain**      | Domain vocabulary, not an orchestration knob. Rule 2.                                                                                                              |
+| `NAV_LINKS` in `application/navBar/const.ts`                      | **application** | UI-only presentation copy for the nav; documented exception — not a business rule.                                                                                 |
 
 ## Dependency Flow
 
@@ -167,3 +166,43 @@ app/ (Presentation) → application/ (Orchestration) → domain/ (Business Logic
 ```
 
 Pages call Application. Application calls Domain + Persistence. Domain is pure.
+
+## Client-Side Import Boundaries
+
+Files marked with `'use client'` have stricter import rules because they run in the browser:
+
+### Allowed imports for `'use client'` files
+
+- `@/domain/` — types, constants, pure use-case functions
+- `@/utils/` — generic utilities
+- `@/hooks/` — React hooks
+- `@/components/` — other client components
+- Other `'use client'` application files
+
+### Forbidden imports for `'use client'` files
+
+- `@/persistence/` — server-only data access layer
+- `@/lib/` — server-only SDK clients (Prisma, Sanity client, Redis)
+
+### Why
+
+`persistence/` and `lib/` contain server-only code (database clients, Node.js APIs). Even importing a _constant_ from these layers creates a bundling dependency on server modules and blurs the client/server boundary.
+
+### What to do instead
+
+- **API route paths** (URL strings): co-locate with the client-side file that uses them.
+- **Shared constants** (enums, labels) needed by both server and client: place in `@/domain/` if they describe business vocabulary, or in `@/utils/` if they're generic.
+- **DTOs and types**: define a domain-level type (in `domain/{entity}/{entity}.model.ts`) and use it instead of importing persistence DTOs directly.
+
+```typescript
+// ❌ Bad: client file imports from persistence
+"use client";
+import { INSURANCE_LIST_API_PATH } from "@/persistence/insurance/insuranceList.const";
+import type { InsuranceListItemDto } from "@/persistence/insurance/insuranceList.dto";
+
+// ✅ Good: constant co-located, type from domain
+("use client");
+import type { InsuranceListItem } from "@/domain/insurance/insurance.model";
+
+const INSURANCE_LIST_API_PATH = "/api/insurance/list/";
+```

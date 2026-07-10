@@ -1,4 +1,3 @@
-
 # Shape UP Pitch to Linear Conversion Rules
 
 ## Overview
@@ -466,9 +465,9 @@ Add the aroundPrecision parameter to the Algolia search configuration:
 
 ```typescript
 algoliaSearchConfig.set(
-  'aroundPrecision',
-  getCenterSearchRadiusByLocationTypeInMeters(locationType)
-)
+  "aroundPrecision",
+  getCenterSearchRadiusByLocationTypeInMeters(locationType),
+);
 ```
 ````
 
@@ -481,6 +480,8 @@ Set it equal to aroundRadius value to enable radius precision behavior.
 - High-quality centers appear first within the search radius
 - Results are sorted by score/ranking, not just distance
 - Behavior matches main result pages
+
+````
 
 ### Sub-Task Example (Test)
 

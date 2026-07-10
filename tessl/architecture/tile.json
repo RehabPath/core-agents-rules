@@ -1,11 +1,13 @@
 {
   "name": "recovery/architecture",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "summary": "Clean architecture: API design, domain vs application layer separation, atomic design, dependency placement, and environment variables",
   "private": true,
   "steering": {
     "api-design": { "rules": "rules/api-design.md" },
-    "domain-vs-application-layer": { "rules": "rules/domain-vs-application-layer.md" },
+    "domain-vs-application-layer": {
+      "rules": "rules/domain-vs-application-layer.md"
+    },
     "atomic-design": { "rules": "rules/atomic-design.md" },
     "dependency-placement": { "rules": "rules/dependency-placement.md" },
     "environment-variables": { "rules": "rules/environment-variables.md" }

@@ -15,22 +15,24 @@ Flag pure business rules placed in `src/application/` that belong in `src/domain
 // Bad — core domain logic in application layer
 // application/center/getCenterSlug.ts
 export function getCenterSlug(center: Center): string {
-  return `/p/${center.slug}/` // domain logic — belongs in domain/center/use-cases/
+  return `/p/${center.slug}/`; // domain logic — belongs in domain/center/use-cases/
 }
 
 // Good — orchestrating domain use cases
 // application/breadcrumbs/computeBreadcrumbs.ts
-import { getCenterProfileUrl } from '@/application/center/getCenterProfileUrl'
-import { getLocationSlug } from '@/domain/location/use-cases/getLocationSlug'
+import { getCenterProfileUrl } from "@/application/center/getCenterProfileUrl";
+import { getLocationSlug } from "@/domain/location/use-cases/getLocationSlug";
 ```
 
 ## No Raw Data Access
 
-Flag direct database or API calls inside `src/application/`.
+Flag direct database or API calls inside **server-side** `src/application/` files.
 
-- Flag `fetch(` called directly on internal APIs (use persistence functions instead).
+- Flag `fetch(` called directly on internal APIs in server-side files (use persistence functions instead).
 - Flag `prisma.`, `sanityClient.`, or any database client usage.
 - Data access belongs in `src/persistence/`.
+
+**Exception:** Files marked `'use client'` (e.g., `*.client.ts`) legitimately call `fetch()` against API routes — this is the correct pattern for client-side data loading since they cannot import persistence functions.
 
 ## No UI Components
 
@@ -105,21 +107,21 @@ Flag code that should NOT be in `src/domain/`:
 // Bad — pure single-entity function mistakenly placed in application/
 // application/center/getCenterSlug.ts
 export function getCenterSlug(center: Center): string {
-  return `/p/${center.slug}/` // no I/O, single entity → belongs in domain/
+  return `/p/${center.slug}/`; // no I/O, single entity → belongs in domain/
 }
 
 // Good — application coordinates, domain decides
 // application/breadcrumbs/computeBreadcrumbs.ts
-import { getCenterProfileSlug } from '@/domain/center/use-cases/getCenterProfileSlug'
-import { getTaxonomySlug } from '@/domain/taxonomy/use-cases/getTaxonomySlug'
-import { getLocationBySlug } from '@/persistence/location/location.persistence'
+import { getCenterProfileSlug } from "@/domain/center/use-cases/getCenterProfileSlug";
+import { getTaxonomySlug } from "@/domain/taxonomy/use-cases/getTaxonomySlug";
+import { getLocationBySlug } from "@/persistence/location/location.persistence";
 
 export async function computeBreadcrumbs(params) {
-  const location = await getLocationBySlug(params.locationSlug) // I/O → application
+  const location = await getLocationBySlug(params.locationSlug); // I/O → application
   return [
-    { label: 'Home', href: '/' },
+    { label: "Home", href: "/" },
     { label: location.name, href: getLocationSlug(location) }, // domain
-    { label: params.center.name, href: getCenterProfileUrl(params.center) } // application
-  ]
+    { label: params.center.name, href: getCenterProfileUrl(params.center) }, // application
+  ];
 }
 ```

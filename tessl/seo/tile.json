@@ -1,6 +1,6 @@
 {
   "name": "recovery/seo",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "summary": "SEO guidelines: canonical URLs, meta tags, social metadata, link semantics, schema markup, server-side rendering, and heading structure",
   "private": true,
   "steering": {
