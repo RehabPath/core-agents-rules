@@ -1,4 +1,3 @@
-
 # GitHub PR Creation Rules
 
 ## Overview
@@ -7,11 +6,12 @@ This document provides rules for creating a GitHub PR, including the required ti
 
 ## Rules
 
-1. Always use the GitHub CLI to create the PR.
-2. If the CLI is not available, provide step-by-step to install it.
-3. Always use the required PR title format: `[TICKET-ID] One-line summary`.
-4. Always follow the PR Description Template below for the PR body.
-5. If no ticket exists, still follow these guidelines and explicitly tell the user a ticket should be created for the PR.
+1. **Always branch from `staging`** — never from `main`. Run `git checkout staging && git pull origin staging` before creating any feature branch. PRs must target `staging` as the base branch.
+2. Always use the GitHub CLI to create the PR.
+3. If the CLI is not available, provide step-by-step to install it.
+4. Always use the required PR title format: `[TICKET-ID] One-line summary`.
+5. Always follow the PR Description Template below for the PR body.
+6. If no ticket exists, still follow these guidelines and explicitly tell the user a ticket should be created for the PR.
 
 ## PR Title Format
 

@@ -1,7 +1,7 @@
 {
   "name": "recovery/frontend",
-  "version": "1.2.0",
-  "summary": "Frontend conventions: animation, design, accessibility, icon components, SVG guidelines, and core-components library usage",
+  "version": "1.3.0",
+  "summary": "Frontend conventions: animation, design, accessibility, icon components, SVG guidelines, core-components library usage, and DOM/browser-API hooks",
   "private": true,
   "steering": {
     "animation-guidelines": { "rules": "rules/animation-guidelines.md" },
@@ -9,7 +9,8 @@
     "html-accessibility": { "rules": "rules/html-accessibility.md" },
     "icon-components": { "rules": "rules/icon-components.md" },
     "icon-svg-guidelines": { "rules": "rules/icon-svg-guidelines.md" },
-    "core-components": { "rules": "rules/core-components.md" }
+    "core-components": { "rules": "rules/core-components.md" },
+    "dom-browser-hooks": { "rules": "rules/dom-browser-hooks.md" }
   },
   "skills": {
     "add-icon": { "path": "skills/add-icon/SKILL.md" }

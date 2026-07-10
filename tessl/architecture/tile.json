@@ -1,6 +1,6 @@
 {
   "name": "recovery/architecture",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "summary": "Clean architecture: API design, domain vs application layer separation, atomic design, dependency placement, and environment variables",
   "private": true,
   "steering": {
