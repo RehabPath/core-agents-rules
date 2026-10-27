@@ -1,5 +1,6 @@
 ---
 description: "Always return new objects instead of mutating originals"
+applyTo: "**"
 ---
 
 # Immutability Rule for Objects

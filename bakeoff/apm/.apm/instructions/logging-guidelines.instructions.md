@@ -1,5 +1,6 @@
 ---
 description: "Use the logger utility; logger.error is for fatal errors only"
+applyTo: "**"
 ---
 
 Always use the `logger` utility function to log messages.
