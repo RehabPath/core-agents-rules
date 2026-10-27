@@ -1,0 +1,7 @@
+---
+description: "Always return new objects instead of mutating originals"
+---
+
+# Immutability Rule for Objects
+
+Whenever you need to add or update properties on an object (for example, as in `shouldAddGooglePhotosToCenter`), always return a new object instead of mutating the original. Use object spread or similar techniques to ensure immutability throughout the codebase.
